@@ -97,7 +97,7 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
       {post.mediaUrls?.length > 0 && (
         <div className="px-4 pb-4">
           <img
-            src={`${process.env.NEXT_PUBLIC_API_URL || `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:4000`}${post.mediaUrls[0]}`}
+            src={post.mediaUrls[0].startsWith('http') ? post.mediaUrls[0] : `${process.env.NEXT_PUBLIC_API_URL || `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:4000`}${post.mediaUrls[0]}`}
             alt="Post" className="w-full max-h-[500px] object-cover rounded-[16px]"
           />
         </div>
