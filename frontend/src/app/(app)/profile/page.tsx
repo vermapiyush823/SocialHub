@@ -7,7 +7,7 @@ import api from '@/lib/api';
 import PostCard from '@/components/PostCard';
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const router = useRouter();
   
   const [posts, setPosts] = useState<any[]>([]);
@@ -49,8 +49,10 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async () => {
     try {
-      await api.patch('/users/profile', editForm);
-      window.location.reload(); // Quickest way to sync auth context with new data
+      const res = await api.patch('/users/profile', editForm);
+      updateUser(res.data.user);
+      setProfileData(res.data.user);
+      setIsEditing(false);
     } catch (e) {
       console.error(e);
       alert('Failed to update profile');
@@ -71,8 +73,9 @@ export default function ProfilePage() {
       });
       const url = uploadRes.data.url;
       
-      await api.patch('/users/profile', { profilePic: url });
-      window.location.reload();
+      const res = await api.patch('/users/profile', { profilePic: url });
+      updateUser(res.data.user);
+      setProfileData(res.data.user);
     } catch (e) {
       console.error(e);
       alert('Failed to upload picture');
