@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import Link from 'next/link';
 import api from '@/lib/api';
 
 interface PostUser { _id: string; name: string; profilePic: string }
@@ -74,11 +75,17 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
     <div className="bg-white rounded-[24px] border-none shadow-[0_8px_30px_rgb(244,107,92,0.06)] overflow-hidden transition-shadow">
       {/* Header */}
       <div className="flex items-center gap-3 p-5 pb-3">
-        <div className="w-11 h-11 rounded-full bg-coral-light flex items-center justify-center font-bold text-coral-primary text-base shrink-0">
-          {post.userId.name?.charAt(0)?.toUpperCase()}
-        </div>
+        <Link href={`/user/${post.userId._id}`} className="w-11 h-11 rounded-full bg-coral-light flex items-center justify-center font-bold text-coral-primary text-base shrink-0 overflow-hidden cursor-pointer">
+          {post.userId.profilePic ? (
+            <img src={post.userId.profilePic} alt="Profile" className="w-full h-full object-cover" />
+          ) : (
+            post.userId.name?.charAt(0)?.toUpperCase()
+          )}
+        </Link>
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-[16px] text-text-main">{post.userId.name}</div>
+          <Link href={`/user/${post.userId._id}`} className="font-semibold text-[16px] text-text-main hover:underline cursor-pointer block truncate">
+            {post.userId.name}
+          </Link>
           <div className="text-[13px] text-text-muted">{timeAgo(post.createdAt)}</div>
         </div>
         {isOwner && (
