@@ -188,6 +188,7 @@ export default function ProfilePage() {
                 <PostCard 
                   key={post._id} 
                   post={post} 
+                  currentUserId={user?._id || ''}
                   onDelete={handlePostDeleted}
                 />
               ))}
