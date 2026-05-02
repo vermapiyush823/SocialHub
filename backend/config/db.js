@@ -5,7 +5,8 @@ let redisClient = null;
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/socialhub');
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/socialhub';
+    await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
     
     // Seed Global Chat
