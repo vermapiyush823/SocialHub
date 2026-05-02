@@ -29,8 +29,12 @@ const connectDB = async () => {
 };
 
 const connectRedis = () => {
+  if (!process.env.REDIS_URI) {
+    console.log('ℹ️  No REDIS_URI set — running without Redis (single-node mode)');
+    return null;
+  }
   try {
-    redisClient = new Redis(process.env.REDIS_URI || 'redis://localhost:6379');
+    redisClient = new Redis(process.env.REDIS_URI, { maxRetriesPerRequest: 3, retryStrategy: (times) => times > 3 ? null : Math.min(times * 200, 2000) });
     redisClient.on('connect', () => console.log('✅ Connected to Redis'));
     redisClient.on('error', (err) => console.warn('⚠️ Redis error:', err.message));
     return redisClient;

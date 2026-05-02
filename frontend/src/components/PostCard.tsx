@@ -84,7 +84,7 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
         {isOwner && (
           <button onClick={handleDelete} className="p-2 rounded-xl text-stone-300 hover:text-stone-600 hover:bg-bg transition-colors cursor-pointer group">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 6L6 18M6 6l12 12"/>
+              <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
         )}
@@ -97,7 +97,7 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
       {post.mediaUrls?.length > 0 && (
         <div className="px-4 pb-4">
           <img
-            src={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:4000${post.mediaUrls[0]}`}
+            src={`${process.env.NEXT_PUBLIC_API_URL || `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:4000`}${post.mediaUrls[0]}`}
             alt="Post" className="w-full max-h-[500px] object-cover rounded-[16px]"
           />
         </div>
@@ -109,7 +109,7 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
           {likesCount > 0 && (
             <span className="flex items-center gap-1.5 text-coral-primary">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
               {likesCount}
             </span>
@@ -117,7 +117,7 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
           {commentsCount > 0 && (
             <span className="cursor-pointer hover:text-text-main transition-colors flex items-center gap-1.5" onClick={toggleComments}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
               {commentsCount}
             </span>
@@ -128,27 +128,26 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
       {/* Actions */}
       <div className="flex items-center gap-3 px-5 py-3 border-t border-stone-50/50">
         <button onClick={handleLike}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-semibold transition-all cursor-pointer ${
-            isLiked 
-              ? 'bg-gradient-to-r from-coral-gradient-start to-coral-primary text-white shadow-md shadow-coral-primary/20' 
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-semibold transition-all cursor-pointer ${isLiked
+              ? 'bg-gradient-to-r from-coral-gradient-start to-coral-primary text-white shadow-md shadow-coral-primary/20'
               : 'bg-coral-light text-coral-primary hover:bg-[#FFEAE5]'
-          }`}
+            }`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24"
             fill={isLiked ? '#fff' : 'none'} stroke={isLiked ? '#fff' : 'currentColor'}
             strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
             className={likeAnim ? 'animate-heart' : ''}
           >
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
-          {likesCount > 0 ? (likesCount >= 1000 ? (likesCount/1000).toFixed(1)+'K' : likesCount) : 'Like'}
+          {likesCount > 0 ? (likesCount >= 1000 ? (likesCount / 1000).toFixed(1) + 'K' : likesCount) : 'Like'}
         </button>
 
         <button onClick={toggleComments}
           className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-semibold bg-white border border-stone-100 text-stone-600 hover:bg-stone-50 transition-colors cursor-pointer shadow-sm"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
           {commentsCount > 0 ? commentsCount : 'Comment'}
         </button>
