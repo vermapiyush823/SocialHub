@@ -1,4 +1,13 @@
 require('dotenv').config();
+
+// ⚠️  DEV-ONLY: Bypass TLS cert validation for corporate proxy (ServiceNow VPN)
+// The corporate network uses a TLS-intercepting proxy with a custom CA that Node
+// doesn't trust, causing UNABLE_TO_GET_ISSUER_CERT_LOCALLY on Cloudinary uploads.
+// Remove this line before deploying to production.
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 const express = require('express');
 const http = require('http');
 const cors = require('cors');

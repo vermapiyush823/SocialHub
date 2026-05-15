@@ -45,11 +45,27 @@ export function getFeedImageUrl(publicId: string): string {
 
 /**
  * Profile picture — square avatar cropped to face.
- * Transformation: w_300,h_300,c_fill,g_face,f_auto,q_auto
- *   - 300 × 300 px, face-aware fill crop, auto format & quality
+ * Transformation: w_400,h_400,c_fill,g_face,f_auto,q_auto
+ *   - 400 × 400 px, face-aware fill crop, auto format & quality
  */
 export function getProfilePicUrl(publicId: string): string {
-  return buildImageUrl(publicId, 'w_300,h_300,c_fill,g_face,f_auto,q_auto');
+  return buildImageUrl(publicId, 'w_400,h_400,c_fill,g_face,f_auto,q_auto');
+}
+
+/**
+ * Large Profile picture — for the main profile section.
+ * Transformation: w_600,h_600,c_fill,g_face,f_auto,q_auto
+ */
+export function getLargeProfilePicUrl(publicId: string): string {
+  return buildImageUrl(publicId, 'w_600,h_600,c_fill,g_face,f_auto,q_auto');
+}
+
+/**
+ * Original/Full image for zoom/preview.
+ * Transformation: f_auto,q_auto (no resizing)
+ */
+export function getOriginalImageUrl(publicId: string): string {
+  return buildImageUrl(publicId, 'f_auto,q_auto');
 }
 
 /**
@@ -86,4 +102,51 @@ export function resolveAvatarUrl(user: {
     return getProfilePicUrl(user.profilePicPublicId);
   }
   return user?.profilePicUrl || '';
+}
+
+// ─── Legacy URL helpers ─────────────────────────────────────────────────────
+
+/**
+ * Inject Cloudinary transforms into a raw Cloudinary URL.
+ *
+ * Old posts stored the full URL like:
+ *   https://res.cloudinary.com/CLOUD/image/upload/v123/folder/file.jpg
+ *
+ * This function inserts a transform string after `/upload/` so it becomes:
+ *   https://res.cloudinary.com/CLOUD/image/upload/w_1080,c_limit,f_auto,q_auto/v123/folder/file.jpg
+ *
+ * Non-Cloudinary URLs are returned unchanged.
+ */
+export function optimizeCloudinaryUrl(
+  rawUrl: string,
+  transform: string = 'w_1080,c_limit,f_auto,q_auto'
+): string {
+  if (!rawUrl) return '';
+
+  // Only touch Cloudinary URLs
+  if (!rawUrl.includes('res.cloudinary.com')) return rawUrl;
+
+  // Insert transform after /upload/
+  // Handles both /image/upload/ and /video/upload/
+  return rawUrl.replace(
+    /\/upload\//,
+    `/upload/${transform}/`
+  );
+}
+
+/**
+ * Determine if a raw Cloudinary URL is a video.
+ */
+export function isCloudinaryVideo(url: string): boolean {
+  return url.includes('/video/upload/');
+}
+
+/**
+ * Apply feed-appropriate transforms to a legacy raw Cloudinary URL.
+ */
+export function optimizeFeedUrl(rawUrl: string): string {
+  if (isCloudinaryVideo(rawUrl)) {
+    return optimizeCloudinaryUrl(rawUrl, 'q_auto,f_auto');
+  }
+  return optimizeCloudinaryUrl(rawUrl, 'w_1080,c_limit,f_auto,q_auto');
 }

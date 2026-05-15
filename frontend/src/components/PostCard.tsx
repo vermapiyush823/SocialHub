@@ -193,8 +193,8 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
       <div className="flex items-center gap-3 px-5 py-3 border-t border-stone-50/50">
         <button onClick={handleLike}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-semibold transition-all cursor-pointer ${isLiked
-              ? 'bg-gradient-to-r from-coral-gradient-start to-coral-primary text-white shadow-md shadow-coral-primary/20'
-              : 'bg-coral-light text-coral-primary hover:bg-[#FFEAE5]'
+            ? 'bg-gradient-to-r from-coral-gradient-start to-coral-primary text-white shadow-md shadow-coral-primary/20'
+            : 'bg-coral-light text-coral-primary hover:bg-[#FFEAE5]'
             }`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24"

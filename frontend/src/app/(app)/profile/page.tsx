@@ -2,10 +2,22 @@
 
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import api from '@/lib/api';
 import PostCard from '@/components/PostCard';
-import { resolveAvatarUrl } from '@/lib/cloudinary';
+import { resolveAvatarUrl, getLargeProfilePicUrl, getOriginalImageUrl } from '@/lib/cloudinary';
+
+// Helper to get larger profile pic
+const resolveLargeAvatarUrl = (user: any) => {
+  if (user?.profilePicPublicId) return getLargeProfilePicUrl(user.profilePicPublicId);
+  return user?.profilePicUrl || '';
+};
+
+// Helper for full-res preview
+const resolveFullAvatarUrl = (user: any) => {
+  if (user?.profilePicPublicId) return getOriginalImageUrl(user.profilePicPublicId);
+  return user?.profilePicUrl || '';
+};
 
 export default function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
@@ -98,6 +110,32 @@ export default function ProfilePage() {
     setPosts(prev => prev.filter(p => p._id !== postId));
   };
 
+  // ─── Long Press / Hold Logic ───────────────────────────────────────────────
+  const [isHolding, setIsHolding] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const holdTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const startHold = useCallback(() => {
+    setIsHolding(true);
+    holdTimer.current = setTimeout(() => {
+      setShowPreview(true);
+      if (navigator.vibrate) navigator.vibrate(50); // Haptic feedback
+    }, 400); // 400ms to trigger preview
+  }, []);
+
+  const endHold = useCallback(() => {
+    if (holdTimer.current) {
+      clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
+    setIsHolding(false);
+  }, []);
+
+  const closePreview = () => {
+    setShowPreview(false);
+    endHold();
+  };
+
   if (!user) return null;
 
   return (
@@ -115,29 +153,71 @@ export default function ProfilePage() {
         
         {/* Profile card */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-8 text-center animate-fade-in relative">
-          {/* Avatar */}
-          <div className="relative w-24 h-24 mx-auto mb-4 cursor-pointer group" onClick={() => fileInputRef.current?.click()}>
-            {resolveAvatarUrl(user) ? (
-              <img
-                src={resolveAvatarUrl(user)}
-                alt="Profile"
-                className="w-full h-full rounded-full object-cover border-4 border-white shadow-sm"
-              />
-            ) : (
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center font-bold text-rose-500 text-3xl border-4 border-white shadow-sm">
-                {user?.name?.charAt(0)?.toUpperCase()}
-              </div>
-            )}
-            
-            <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              {uploadingPic ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          {/* Avatar Section */}
+          <div className="relative mb-6">
+            <div 
+              className={`relative w-32 h-32 mx-auto cursor-pointer group transition-all duration-300 ${isHolding ? 'scale-95' : 'scale-100'}`}
+              onMouseDown={startHold}
+              onMouseUp={endHold}
+              onMouseLeave={endHold}
+              onTouchStart={startHold}
+              onTouchEnd={endHold}
+              onClick={(e) => {
+                // If they weren't holding long enough for preview, trigger upload
+                if (!showPreview) fileInputRef.current?.click();
+              }}
+            >
+              {resolveLargeAvatarUrl(user) ? (
+                <img
+                  src={resolveLargeAvatarUrl(user)}
+                  alt="Profile"
+                  className="w-full h-full rounded-full object-cover border-4 border-white shadow-md group-hover:brightness-90 transition-all"
+                />
               ) : (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center font-bold text-rose-500 text-4xl border-4 border-white shadow-md">
+                  {user?.name?.charAt(0)?.toUpperCase()}
+                </div>
               )}
+              
+              <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {uploadingPic ? (
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <div className="bg-white/20 backdrop-blur-sm p-2 rounded-full">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </div>
+                )}
+              </div>
             </div>
+            <p className="text-[11px] text-stone-400 mt-2 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Hold to preview · Tap to change</p>
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePicUpload} disabled={uploadingPic} />
           </div>
+
+          {/* Instagram-style Popup Preview */}
+          {showPreview && (
+            <div 
+              className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in"
+              onClick={closePreview}
+            >
+              <div 
+                className="relative max-w-[90vw] max-h-[70vh] aspect-square animate-scale-up"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                  closePreview();
+                }}
+              >
+                <img 
+                  src={resolveFullAvatarUrl(user)} 
+                  alt="Full Preview"
+                  className="w-full h-full object-cover rounded-full shadow-2xl border-4 border-white"
+                />
+                <div className="absolute bottom-4 left-0 right-0 text-center">
+                  <span className="bg-black/40 backdrop-blur-md text-white text-xs font-bold py-2 px-4 rounded-full">Tap to change profile picture</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* User Info / Edit Form */}
           {isEditing ? (

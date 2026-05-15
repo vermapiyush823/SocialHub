@@ -1,30 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 const auth = require('../middleware/auth');
 
 // ─── Upload limits ────────────────────────────────────────────────────────────
-const IMAGE_MAX_BYTES = 10 * 1024 * 1024;   // 10 MB
+const IMAGE_MAX_BYTES = 10 * 1024 * 1024;   // 10 MB (client file)
 const VIDEO_MAX_BYTES = 100 * 1024 * 1024;  // 100 MB
 const VIDEO_MAX_DURATION_SEC = 90;           // 90 seconds
 
-// ─── Image storage ────────────────────────────────────────────────────────────
-const imageStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'socialhub/images',
-    resource_type: 'image',
-    allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp'],
-    // Eagerly generate a compressed master; original is kept so transforms work
-    eager: [{ quality: 'auto', fetch_format: 'auto' }],
-    eager_async: true,
-  },
-});
-
-const uploadImage = multer({
-  storage: imageStorage,
+// ─── Use memory storage so we control the Cloudinary upload ourselves ─────────
+// This lets us pass `transformation` and `eager` params that
+// multer-storage-cloudinary silently drops.
+const memImageUpload = multer({
+  storage: multer.memoryStorage(),
   limits: { fileSize: IMAGE_MAX_BYTES },
   fileFilter: (_req, file, cb) => {
     if (!file.mimetype.startsWith('image/')) {
@@ -34,21 +23,8 @@ const uploadImage = multer({
   },
 });
 
-// ─── Video storage ────────────────────────────────────────────────────────────
-const videoStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'socialhub/videos',
-    resource_type: 'video',
-    allowed_formats: ['mp4', 'mov', 'webm'],
-    // Eager transcode to q_auto compressed mp4 on upload (async, non-blocking)
-    eager: [{ quality: 'auto', fetch_format: 'auto', format: 'mp4' }],
-    eager_async: true,
-  },
-});
-
-const uploadVideo = multer({
-  storage: videoStorage,
+const memVideoUpload = multer({
+  storage: multer.memoryStorage(),
   limits: { fileSize: VIDEO_MAX_BYTES },
   fileFilter: (_req, file, cb) => {
     if (!file.mimetype.startsWith('video/')) {
@@ -61,8 +37,21 @@ const uploadVideo = multer({
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * After a video is uploaded, fetch its metadata from Cloudinary and delete it
- * if it exceeds the max allowed duration. Returns an error string or null.
+ * Upload a buffer to Cloudinary via upload_stream.
+ * Returns the Cloudinary response (public_id, bytes, format, etc.)
+ */
+function uploadToCloudinary(buffer, options) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(options, (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+    stream.end(buffer);
+  });
+}
+
+/**
+ * Check video duration after upload and delete if it exceeds the limit.
  */
 async function enforceDurationLimit(publicId) {
   try {
@@ -72,107 +61,174 @@ async function enforceDurationLimit(publicId) {
     });
     const duration = result.duration || 0;
     if (duration > VIDEO_MAX_DURATION_SEC) {
-      // Delete the asset — it's too long
       await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
       return `Video duration (${Math.ceil(duration)}s) exceeds the ${VIDEO_MAX_DURATION_SEC}s limit.`;
     }
     return null;
   } catch (err) {
     console.error('Duration check error:', err);
-    return null; // Don't block upload if metadata check fails
+    return null;
   }
 }
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
-// POST /api/upload — Upload a single image
-router.post('/image', auth, (req, res, next) => {
-  uploadImage.single('file')(req, res, (err) => {
-    if (err) {
-      if (err.code === 'LIMIT_FILE_SIZE') {
+// POST /api/upload/image
+// Compresses + resizes the image AT UPLOAD TIME so the stored asset is small.
+//   - Max 2048px on the longest edge (no social feed needs 8K photos)
+//   - quality: auto       → Cloudinary picks the best compression level
+//   - fetch_format: auto  → stores as WebP/AVIF when possible
+router.post('/image', auth, (req, res) => {
+  memImageUpload.single('file')(req, res, async (multerErr) => {
+    if (multerErr) {
+      console.error('Image multer error:', multerErr);
+      if (multerErr.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({ error: `Image must be under ${IMAGE_MAX_BYTES / 1024 / 1024} MB.` });
       }
-      return res.status(400).json({ error: err.message || 'Image upload failed.' });
+      return res.status(400).json({ error: multerErr.message || 'Image upload failed.' });
     }
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded.' });
     }
 
-    // multer-storage-cloudinary puts public_id in req.file.filename
-    res.json({
-      publicId: req.file.filename,
-      type: 'image',
-    });
+    try {
+      const result = await uploadToCloudinary(req.file.buffer, {
+        folder: 'socialhub/images',
+        resource_type: 'image',
+        // ──── UPLOAD-TIME compression ────
+        // These transforms run ONCE at upload, so the stored asset is small.
+        transformation: [
+          {
+            width: 2048,
+            height: 2048,
+            crop: 'limit',        // never upscale, shrink if larger
+            quality: 'auto:good', // aggressive compression with good quality
+            fetch_format: 'auto', // auto-pick best format (WebP, AVIF, etc.)
+          },
+        ],
+      });
+
+      console.log(
+        `✅ Image uploaded: ${result.public_id} — ` +
+        `${(req.file.size / 1024).toFixed(0)} KB → ${(result.bytes / 1024).toFixed(0)} KB ` +
+        `(${result.width}×${result.height}, ${result.format})`
+      );
+
+      res.json({
+        publicId: result.public_id,
+        type: 'image',
+      });
+    } catch (err) {
+      console.error('Image upload error:', err);
+      res.status(500).json({ error: 'Image upload to Cloudinary failed.' });
+    }
   });
 });
 
-// POST /api/upload/video — Upload a single video
-router.post('/video', auth, (req, res, next) => {
-  uploadVideo.single('file')(req, res, async (err) => {
-    if (err) {
-      if (err.code === 'LIMIT_FILE_SIZE') {
+// POST /api/upload/video
+// Compresses video at upload time with q_auto + auto format.
+router.post('/video', auth, (req, res) => {
+  memVideoUpload.single('file')(req, res, async (multerErr) => {
+    if (multerErr) {
+      console.error('Video multer error:', multerErr);
+      if (multerErr.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({ error: `Video must be under ${VIDEO_MAX_BYTES / 1024 / 1024} MB.` });
       }
-      return res.status(400).json({ error: err.message || 'Video upload failed.' });
+      return res.status(400).json({ error: multerErr.message || 'Video upload failed.' });
     }
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded.' });
     }
 
-    const publicId = req.file.filename;
-
-    // Post-upload duration enforcement
-    const durationError = await enforceDurationLimit(publicId);
-    if (durationError) {
-      return res.status(400).json({ error: durationError });
-    }
-
-    res.json({
-      publicId,
-      type: 'video',
-    });
-  });
-});
-
-// POST /api/upload — Legacy single-file route (auto-detect image vs video)
-// Kept for backwards compatibility with existing CreatePostModal calls
-router.post('/', auth, (req, res) => {
-  // Peek at content-type to route to the right handler
-  // We'll use the image uploader and fall back to video if the mime doesn't match
-  uploadImage.single('file')(req, res, (imgErr) => {
-    if (!imgErr && req.file) {
-      return res.json({
-        publicId: req.file.filename,
-        type: 'image',
-        // Legacy field so old frontend code doesn't break during migration
-        url: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/${req.file.filename}`,
+    try {
+      const result = await uploadToCloudinary(req.file.buffer, {
+        folder: 'socialhub/videos',
+        resource_type: 'video',
+        // ──── UPLOAD-TIME compression ────
+        transformation: [
+          {
+            quality: 'auto',
+            fetch_format: 'mp4',  // normalise to mp4
+          },
+        ],
       });
-    }
 
-    // Image upload failed (likely a video) — try video uploader
-    uploadVideo.single('file')(req, res, async (vidErr) => {
-      if (vidErr) {
-        if (vidErr.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ error: `Video must be under ${VIDEO_MAX_BYTES / 1024 / 1024} MB.` });
-        }
-        return res.status(400).json({ error: vidErr.message || 'Upload failed.' });
-      }
-      if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded.' });
-      }
-
-      const publicId = req.file.filename;
-      const durationError = await enforceDurationLimit(publicId);
+      // Enforce duration limit
+      const durationError = await enforceDurationLimit(result.public_id);
       if (durationError) {
         return res.status(400).json({ error: durationError });
       }
 
+      console.log(
+        `✅ Video uploaded: ${result.public_id} — ` +
+        `${(req.file.size / 1024 / 1024).toFixed(1)} MB → ${(result.bytes / 1024 / 1024).toFixed(1)} MB ` +
+        `(${result.format})`
+      );
+
       res.json({
-        publicId,
+        publicId: result.public_id,
         type: 'video',
-        url: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload/${publicId}`,
       });
-    });
+    } catch (err) {
+      console.error('Video upload error:', err);
+      res.status(500).json({ error: 'Video upload to Cloudinary failed.' });
+    }
+  });
+});
+
+// POST /api/upload — Legacy single-file route (auto-detect)
+router.post('/', auth, (req, res) => {
+  const autoUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: VIDEO_MAX_BYTES },
+  });
+
+  autoUpload.single('file')(req, res, async (multerErr) => {
+    if (multerErr) {
+      console.error('Auto upload error:', multerErr);
+      if (multerErr.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'File is too large.' });
+      }
+      return res.status(400).json({ error: multerErr.message || 'Upload failed.' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded.' });
+    }
+
+    const isVideo = req.file.mimetype?.startsWith('video/');
+
+    try {
+      const opts = isVideo
+        ? {
+          folder: 'socialhub/videos',
+          resource_type: 'video',
+          transformation: [{ quality: 'auto', fetch_format: 'mp4' }],
+        }
+        : {
+          folder: 'socialhub/images',
+          resource_type: 'image',
+          transformation: [
+            { width: 2048, height: 2048, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' },
+          ],
+        };
+
+      const result = await uploadToCloudinary(req.file.buffer, opts);
+
+      if (isVideo) {
+        const durationError = await enforceDurationLimit(result.public_id);
+        if (durationError) return res.status(400).json({ error: durationError });
+      }
+
+      res.json({
+        publicId: result.public_id,
+        type: isVideo ? 'video' : 'image',
+        // Legacy compat field
+        url: result.secure_url,
+      });
+    } catch (err) {
+      console.error('Auto upload error:', err);
+      res.status(500).json({ error: 'Upload to Cloudinary failed.' });
+    }
   });
 });
 
