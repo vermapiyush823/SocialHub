@@ -7,8 +7,8 @@ const auth = require('../middleware/auth');
 router.get('/:id', auth, async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
-      .populate('followers', 'name profilePic')
-      .populate('following', 'name profilePic');
+      .populate('followers', 'name profilePicPublicId profilePicUrl')
+      .populate('following', 'name profilePicPublicId profilePicUrl');
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -24,7 +24,7 @@ router.get('/:id', auth, async (req, res) => {
 // PATCH /api/users/profile — Update own profile
 router.patch('/profile', auth, async (req, res) => {
   try {
-    const allowedFields = ['name', 'bio', 'profilePic'];
+    const allowedFields = ['name', 'bio', 'profilePicPublicId', 'profilePicUrl'];
     const updates = {};
     
     Object.keys(req.body).forEach(key => {
@@ -83,7 +83,7 @@ router.get('/', auth, async (req, res) => {
     const query = q ? { name: { $regex: q, $options: 'i' } } : {};
     
     const users = await User.find(query)
-      .select('name email profilePic bio')
+      .select('name email profilePicPublicId profilePicUrl bio')
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit))
       .sort({ createdAt: -1 });

@@ -27,7 +27,13 @@ const userSchema = new mongoose.Schema({
     enum: ['local', 'google'],
     default: 'local',
   },
-  profilePic: {
+  // Cloudinary-uploaded profile photo (public_id only, URL built dynamically)
+  profilePicPublicId: {
+    type: String,
+    default: '',
+  },
+  // External profile photo URL (e.g. Google OAuth avatar)
+  profilePicUrl: {
     type: String,
     default: '',
   },

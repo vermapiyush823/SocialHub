@@ -11,7 +11,7 @@ type NewChatMode = 'user' | 'group';
 
 interface Conversation {
   _id: string; isGroup: boolean; groupName: string; isGlobal: boolean; joinMode: string;
-  otherUser: { _id: string; name: string; profilePic: string; isOnline: boolean } | null;
+  otherUser: { _id: string; name: string; profilePicPublicId?: string; profilePicUrl?: string; isOnline: boolean } | null;
   lastMessage: { content: string; senderId: { name: string } | null; timestamp: string };
   updatedAt: string;
 }

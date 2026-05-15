@@ -7,8 +7,14 @@ import PostCard from '@/components/PostCard';
 import CreatePostModal from '@/components/CreatePostModal';
 
 interface Post {
-  _id: string; userId: { _id: string; name: string; profilePic: string };
-  caption: string; mediaUrls: string[]; likesCount: number; commentsCount: number; isLiked: boolean; createdAt: string;
+  _id: string;
+  userId: { _id: string; name: string; profilePicPublicId?: string; profilePicUrl?: string };
+  caption: string;
+  media: { publicId: string; type: 'image' | 'video' }[];
+  likesCount: number;
+  commentsCount: number;
+  isLiked: boolean;
+  createdAt: string;
 }
 
 export default function FeedPage() {

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
 import PostCard from '@/components/PostCard';
+import { resolveAvatarUrl } from '@/lib/cloudinary';
 
 export default function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
@@ -63,17 +64,26 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side size check (images only for avatar)
+    const IMAGE_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+    if (file.size > IMAGE_MAX_BYTES) {
+      alert(`Profile picture must be under 10 MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB.`);
+      return;
+    }
+
     setUploadingPic(true);
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      const uploadRes = await api.post('/upload', formData, {
+      // Upload image and receive { publicId, type }
+      const uploadRes = await api.post('/upload/image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      const url = uploadRes.data.url;
-      
-      const res = await api.patch('/users/profile', { profilePic: url });
+      const { publicId } = uploadRes.data;
+
+      // Store only the publicId — URL built dynamically via cloudinary.ts
+      const res = await api.patch('/users/profile', { profilePicPublicId: publicId });
       updateUser(res.data.user);
       setProfileData(res.data.user);
     } catch (e) {
@@ -107,8 +117,12 @@ export default function ProfilePage() {
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-8 text-center animate-fade-in relative">
           {/* Avatar */}
           <div className="relative w-24 h-24 mx-auto mb-4 cursor-pointer group" onClick={() => fileInputRef.current?.click()}>
-            {user?.profilePic ? (
-              <img src={user.profilePic} alt="Profile" className="w-full h-full rounded-full object-cover border-4 border-white shadow-sm" />
+            {resolveAvatarUrl(user) ? (
+              <img
+                src={resolveAvatarUrl(user)}
+                alt="Profile"
+                className="w-full h-full rounded-full object-cover border-4 border-white shadow-sm"
+              />
             ) : (
               <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center font-bold text-rose-500 text-3xl border-4 border-white shadow-sm">
                 {user?.name?.charAt(0)?.toUpperCase()}

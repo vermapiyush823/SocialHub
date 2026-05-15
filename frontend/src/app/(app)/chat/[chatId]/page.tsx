@@ -9,7 +9,7 @@ import type { Socket } from 'socket.io-client';
 
 interface Msg { _id: string; chatId: string; senderId: { _id: string; name: string } | string; content: string; type: string; status: string; readBy: string[]; createdAt: string }
 interface ChatInfo { _id: string; isGroup: boolean; groupName: string; isGlobal: boolean; description: string; admin: string; participants: Array<{ _id: string; name: string; isOnline: boolean; lastSeen: string }> }
-interface JoinRequest { _id: string; name: string; profilePic: string; email: string }
+interface JoinRequest { _id: string; name: string; profilePicPublicId?: string; profilePicUrl?: string; email: string }
 
 export default function ChatRoomPage() {
   const { chatId } = useParams<{ chatId: string }>();

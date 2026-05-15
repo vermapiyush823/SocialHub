@@ -7,7 +7,8 @@ interface User {
   _id: string;
   name: string;
   email: string;
-  profilePic: string;
+  profilePicPublicId: string;  // Cloudinary public_id for uploaded avatars
+  profilePicUrl: string;       // External URL fallback (e.g. Google OAuth photo)
   bio: string;
   followers: string[];
   following: string[];

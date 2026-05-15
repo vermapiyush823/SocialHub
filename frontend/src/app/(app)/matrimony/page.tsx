@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import api from '@/lib/api';
 
 interface Profile {
-  _id: string; userId: { _id: string; name: string; profilePic: string; isOnline?: boolean };
+  _id: string; userId: { _id: string; name: string; profilePicPublicId?: string; profilePicUrl?: string; isOnline?: boolean };
   age: number; gender: string; height: string; religion: string; caste: string; motherTongue: string; maritalStatus: string;
   education: string; occupation: string; income: string; city: string; state: string; country: string; about: string; interestSent?: boolean;
 }

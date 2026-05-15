@@ -3,11 +3,51 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import {
+  getFeedImageUrl,
+  getVideoUrl,
+  resolveAvatarUrl,
+} from '@/lib/cloudinary';
 
-interface PostUser { _id: string; name: string; profilePic: string }
-interface Comment { _id: string; userId: PostUser; content: string; createdAt: string }
-interface Post { _id: string; userId: PostUser; caption: string; mediaUrls: string[]; likesCount: number; commentsCount: number; isLiked: boolean; createdAt: string }
-interface Props { post: Post; currentUserId: string; onDelete?: (id: string) => void }
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface PostUser {
+  _id: string;
+  name: string;
+  profilePicPublicId?: string;
+  profilePicUrl?: string;
+}
+
+interface MediaItem {
+  publicId: string;
+  type: 'image' | 'video';
+}
+
+interface Comment {
+  _id: string;
+  userId: PostUser;
+  content: string;
+  createdAt: string;
+}
+
+interface Post {
+  _id: string;
+  userId: PostUser;
+  caption: string;
+  media: MediaItem[];
+  likesCount: number;
+  commentsCount: number;
+  isLiked: boolean;
+  createdAt: string;
+}
+
+interface Props {
+  post: Post;
+  currentUserId: string;
+  onDelete?: (id: string) => void;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function PostCard({ post, currentUserId, onDelete }: Props) {
   const [isLiked, setIsLiked] = useState(post.isLiked);
@@ -71,13 +111,17 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
     catch (e) { console.error(e); }
   };
 
+  // Resolve the primary media item (first element)
+  const primaryMedia = post.media?.[0] ?? null;
+  const avatarUrl = resolveAvatarUrl(post.userId);
+
   return (
     <div className="bg-white rounded-[24px] border-none shadow-[0_8px_30px_rgb(244,107,92,0.06)] overflow-hidden transition-shadow">
       {/* Header */}
       <div className="flex items-center gap-3 p-5 pb-3">
         <Link href={`/user/${post.userId._id}`} className="w-11 h-11 rounded-full bg-coral-light flex items-center justify-center font-bold text-coral-primary text-base shrink-0 overflow-hidden cursor-pointer">
-          {post.userId.profilePic ? (
-            <img src={post.userId.profilePic} alt="Profile" className="w-full h-full object-cover" />
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
           ) : (
             post.userId.name?.charAt(0)?.toUpperCase()
           )}
@@ -100,13 +144,26 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
       {/* Caption */}
       {post.caption && <p className="px-5 pb-4 text-[15px] leading-relaxed text-text-main">{post.caption}</p>}
 
-      {/* Media */}
-      {post.mediaUrls?.length > 0 && (
+      {/* Media — Cloudinary-optimised */}
+      {primaryMedia && (
         <div className="px-4 pb-4">
-          <img
-            src={post.mediaUrls[0].startsWith('http') ? post.mediaUrls[0] : `${process.env.NEXT_PUBLIC_API_URL || `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:4000`}${post.mediaUrls[0]}`}
-            alt="Post" className="w-full max-h-[500px] object-cover rounded-[16px]"
-          />
+          {primaryMedia.type === 'video' ? (
+            <video
+              src={getVideoUrl(primaryMedia.publicId)}
+              controls
+              playsInline
+              preload="metadata"
+              className="w-full max-h-[500px] rounded-[16px] bg-black"
+              aria-label="Post video"
+            />
+          ) : (
+            <img
+              src={getFeedImageUrl(primaryMedia.publicId)}
+              alt="Post"
+              className="w-full max-h-[500px] object-cover rounded-[16px]"
+              loading="lazy"
+            />
+          )}
         </div>
       )}
 
@@ -170,8 +227,12 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
           ) : (
             comments.map(c => (
               <div key={c._id} className="flex gap-2.5 px-4 py-2.5">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-50 to-rose-100 flex items-center justify-center font-bold text-rose-500 text-[10px] shrink-0 mt-0.5">
-                  {c.userId.name?.charAt(0)?.toUpperCase()}
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-50 to-rose-100 flex items-center justify-center font-bold text-rose-500 text-[10px] shrink-0 mt-0.5 overflow-hidden">
+                  {resolveAvatarUrl(c.userId) ? (
+                    <img src={resolveAvatarUrl(c.userId)} alt={c.userId.name} className="w-full h-full object-cover" />
+                  ) : (
+                    c.userId.name?.charAt(0)?.toUpperCase()
+                  )}
                 </div>
                 <div>
                   <span className="font-semibold text-[13px] text-stone-900">{c.userId.name} </span>

@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import PostCard from '@/components/PostCard';
+import { resolveAvatarUrl } from '@/lib/cloudinary';
 
 export default function UserProfilePage() {
   const { user: currentUser } = useAuth();
@@ -103,8 +104,12 @@ export default function UserProfilePage() {
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-8 text-center animate-fade-in relative">
           {/* Avatar */}
           <div className="relative w-24 h-24 mx-auto mb-4">
-            {profileUser.profilePic ? (
-              <img src={profileUser.profilePic} alt="Profile" className="w-full h-full rounded-full object-cover border-4 border-white shadow-sm" />
+            {resolveAvatarUrl(profileUser) ? (
+              <img
+                src={resolveAvatarUrl(profileUser)}
+                alt="Profile"
+                className="w-full h-full rounded-full object-cover border-4 border-white shadow-sm"
+              />
             ) : (
               <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center font-bold text-rose-500 text-3xl border-4 border-white shadow-sm">
                 {profileUser.name?.charAt(0)?.toUpperCase()}

@@ -100,7 +100,7 @@ router.post('/google', async (req, res) => {
       user = new User({
         name,
         email,
-        profilePic: picture,
+        profilePicUrl: picture,  // Store external Google photo URL in fallback field
         authProvider: 'google',
         isOnline: true,
         lastSeen: new Date(),
@@ -110,7 +110,7 @@ router.post('/google', async (req, res) => {
       // Update online status and profile pic if it was missing
       user.isOnline = true;
       user.lastSeen = new Date();
-      if (!user.profilePic && picture) user.profilePic = picture;
+      if (!user.profilePicUrl && picture) user.profilePicUrl = picture;
       await user.save();
     }
 

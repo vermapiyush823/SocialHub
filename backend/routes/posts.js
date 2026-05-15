@@ -13,7 +13,7 @@ router.get('/feed', auth, async (req, res) => {
     }
 
     const posts = await Post.find(query)
-      .populate('userId', 'name profilePic')
+      .populate('userId', 'name profilePicPublicId profilePicUrl')
       .sort({ createdAt: -1 })
       .limit(parseInt(limit) + 1); // Fetch one extra to know if there's more
 
@@ -40,7 +40,7 @@ router.get('/feed', auth, async (req, res) => {
 router.get('/user/:userId', auth, async (req, res) => {
   try {
     const posts = await Post.find({ userId: req.params.userId, isDeleted: false })
-      .populate('userId', 'name profilePic')
+      .populate('userId', 'name profilePicPublicId profilePicUrl')
       .sort({ createdAt: -1 });
 
     const enriched = posts.map(post => ({
@@ -58,19 +58,25 @@ router.get('/user/:userId', auth, async (req, res) => {
 // POST /api/posts — Create a new post
 router.post('/', auth, async (req, res) => {
   try {
-    const { caption, mediaUrls } = req.body;
+    const { caption, media } = req.body;
 
-    if (!caption && (!mediaUrls || mediaUrls.length === 0)) {
+    if (!caption && (!media || media.length === 0)) {
       return res.status(400).json({ error: 'Post must have a caption or media' });
     }
+
+    // Validate each media item has publicId and a valid type
+    const validatedMedia = (media || []).map(m => ({
+      publicId: m.publicId,
+      type: ['image', 'video'].includes(m.type) ? m.type : 'image',
+    }));
 
     const post = new Post({
       userId: req.user._id,
       caption: caption || '',
-      mediaUrls: mediaUrls || [],
+      media: validatedMedia,
     });
     await post.save();
-    await post.populate('userId', 'name profilePic');
+    await post.populate('userId', 'name profilePicPublicId profilePicUrl');
 
     res.status(201).json({ post: { ...post.toObject(), isLiked: false } });
   } catch (err) {
