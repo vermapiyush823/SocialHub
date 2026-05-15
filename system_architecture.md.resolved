@@ -1,0 +1,205 @@
+# Platform Architecture & System Design Document
+
+This document outlines the production-grade architecture for a high-performance web application integrating Social Feed, Real-time Chat, and Matrimony systems, capable of handling 1,000–5,000 concurrent users and scaling horizontally.
+
+---
+
+## 1. System Architecture (V1 Implementation)
+
+The platform is built as a **Monolith API with a Decoupled Frontend**, optimized for rapid deployment and initial scaling.
+
+*   **Frontend**: Next.js 16 (React) deployed on **Vercel**. State management via custom Auth hooks and React state.
+*   **Backend**: Express.js Monolith deployed on **Render**. Handles Auth, Feed, Chat, and Matrimony logic in a single service for simplicity and low latency in early stages.
+*   **Database**: **MongoDB Atlas** (Shared Tier) as the primary data store for all entities.
+*   **Real-time Communication**: Socket.io for live chat and notifications.
+*   **Redis Connectivity**: Optional integration. The system runs in **Single-Node Mode** by default, allowing deployment on free-tier hosting without a mandatory Redis instance. Redis is used for multi-node scaling when needed.
+*   **Media Storage**: **Cloudinary** for persistent, CDN-backed image and video hosting, solving the "ephemeral storage" issue on cloud containers.
+
+## 2. Tech Stack Recommendations & Justification
+
+| Layer | Technology | Justification |
+| :--- | :--- | :--- |
+| **Frontend (Web)** | Next.js 16 (React) | SEO-friendly, fast initial load, deployed on Vercel for zero-config global scaling. |
+| **Backend API** | Node.js with Express | Fast development cycle, excellent for Socket.io integration. Deployed on Render. |
+| **Authentication** | Google OAuth 2.0 + JWT | Seamless onboarding with "Sign in with Google" and secure JWT-based sessions. |
+| **Primary DB** | MongoDB Atlas | Flexible schema for evolving social features and matrimony profiles. |
+| **Media Storage** | Cloudinary | Handles persistent storage, auto-resizing, and CDN delivery for all user media. |
+| **Caching/PubSub** | Redis (Optional) | Used for cross-instance chat syncing. App falls back to local memory if Redis is absent. |
+
+## 3. Database Schema Design
+
+### Relational (PostgreSQL)
+
+**Users Table**
+*   `id` (UUID, PK)
+*   `username` (String, Unique)
+*   `email` (String, Unique)
+*   `password_hash` (String)
+*   `profile_pic_url` (String)
+*   `created_at` (Timestamp)
+
+**Followers Table**
+*   `follower_id` (UUID, FK Users)
+*   `following_id` (UUID, FK Users)
+*   `created_at` (Timestamp)
+
+**MatrimonyProfiles Table**
+*   `user_id` (UUID, PK, FK Users)
+*   `religion` (String)
+*   `caste` (String)
+*   `height_cm` (Int)
+*   `profession` (String)
+*   `income_range` (String)
+*   `preferences` (JSONB) - For complex filtering
+*   `is_verified` (Boolean)
+
+**Matches Table**
+*   `user1_id` (UUID)
+*   `user2_id` (UUID)
+*   `status` (Enum: PENDING, ACCEPTED, REJECTED)
+*   `compatibility_score` (Float)
+
+### NoSQL (MongoDB)
+
+**Posts Collection**
+*   `_id` (ObjectId)
+*   `user_id` (UUID, Indexed)
+*   `type` (Enum: IMAGE, VIDEO, TEXT)
+*   `media_urls` (Array of Strings)
+*   `caption` (String)
+*   `likes_count` (Int)
+*   `created_at` (Timestamp, Indexed for sorting)
+
+**Messages Collection**
+*   `_id` (ObjectId)
+*   `chat_id` (String, Indexed) - Can be `user1_id:user2_id` or Group ID
+*   `sender_id` (UUID)
+*   `content` (String/Encrypted String)
+*   `media_url` (String, Nullable)
+*   `status` (Enum: SENT, DELIVERED, READ)
+*   `timestamp` (Timestamp, Indexed)
+
+## 4. API Design (REST)
+
+*Note: Internal microservice communication can use gRPC. Frontend uses REST/GraphQL.*
+
+**Auth & Users**
+*   `POST /api/v1/auth/register`
+*   `POST /api/v1/auth/login`
+*   `POST /api/v1/auth/google` (Verifies Google ID tokens and issues app JWT)
+*   `GET /api/v1/users/:id/profile`
+
+**Social Feed**
+*   `GET /api/v1/feed` (Returns personalized feed)
+*   `POST /api/v1/posts` (Create post)
+*   `POST /api/v1/posts/:id/like`
+
+**Chat**
+*   `GET /api/v1/chat/conversations` (List user's chats)
+*   `GET /api/v1/chat/:chatId/messages` (Paginated history)
+*   *(Sending messages handled via WebSockets)*
+
+**Matrimony**
+*   `GET /api/v1/matrimony/search` (Accepts query params for filters)
+*   `POST /api/v1/matrimony/request/:targetUserId`
+*   `GET /api/v1/matrimony/matches`
+
+## 5. Real-time System Design (Chat & Notifications)
+
+**Architecture Flow:**
+1.  User connects via WebSocket to the API Gateway.
+2.  Gateway routes connection to one of the **Chat Service Nodes**.
+3.  User sends a message payload to the server.
+4.  Server saves message to MongoDB (async).
+5.  Server publishes the message to **Redis Pub/Sub** on a channel specific to the recipient's user ID.
+6.  The specific Chat Service Node where the recipient is currently connected picks up the Redis event and pushes it to the recipient via WebSocket.
+7.  **Presence Tracking**: Client sends a heartbeat every 30s. Redis stores `user_id: online` with a 45s TTL. If heartbeat drops, key expires, triggering an "offline" broadcast.
+
+## 6. Feed System Design
+
+To ensure fast load times, we use a hybrid **Fan-out** approach:
+
+*   **Push Model (Fan-out on Write)**: When a normal user (e.g., 500 followers) posts, a background worker (Kafka/RabbitMQ) pushes the post ID to a Redis List representing the feed of each of their 500 followers. Fetching the feed is an O(1) Redis read.
+*   **Pull Model (Fan-out on Read)**: If a celebrity (e.g., 1M followers) posts, pushing to 1M lists is too slow and memory-intensive. We store their post in a global table. 
+*   **Hybrid Feed Generation**: When a user opens the app, the system fetches their Redis feed (push model) and merges it with recent posts from celebrities they follow (pull model), sorts by time/engagement, and returns it.
+
+## 7. Scalability Strategy
+
+*   **Load Balancing**: AWS Application Load Balancer (ALB) distributing traffic across multiple instances based on CPU utilization.
+*   **Horizontal Scaling**: All microservices are stateless. User sessions are stored in Redis. This allows auto-scaling groups to spin up new pods in Kubernetes instantly when concurrent users spike.
+*   **Database Scaling**: 
+    *   PostgreSQL: Read Replicas to handle heavy `SELECT` queries for Matrimony searches.
+    *   MongoDB: Sharding based on `chat_id` for messages to distribute massive write loads.
+*   **Pagination**: Strict cursor-based infinite scrolling to prevent DB table scans.
+
+## 8. Security Considerations
+
+*   **Authentication**: Short-lived JWTs (15 mins) and HttpOnly Refresh Tokens (7 days).
+*   **Data Protection**: 
+    *   Passwords hashed with bcrypt/Argon2.
+    *   Chat: Implement Signal Protocol for E2E Encryption (Optional but preferred). If E2EE is too complex for V1, use TLS in transit and AES-256 at rest.
+*   **Rate Limiting**: Redis-based rate limiting per IP and User ID to prevent spam/DDoS.
+*   **Abuse Prevention**: Content moderation APIs (AWS Rekognition) to automatically flag NSFW images in the Matrimony/Feed sections.
+
+## 9. DevOps and Deployment
+
+The platform uses a modern CI/CD flow optimized for monorepos:
+
+*   **Frontend Deployment**: Hosted on **Vercel**. Automatically deploys from the `/frontend` directory on every push to `main`.
+*   **Backend Deployment**: Hosted on **Render** as a Web Service. Configured via `render.yaml` for infrastructure-as-code.
+*   **Monorepo Support**: Root-level `package.json` allows running both services locally with a single command.
+*   **Environment Awareness**: The system detects the environment (`NODE_ENV`) and switches between local and production URLs (e.g., `NEXT_PUBLIC_API_URL`) automatically.
+*   **Database Connectivity**: MongoDB Atlas whitelist allows access from Render's dynamic IP range. Cloudinary credentials managed via Render environment variables.
+
+## 10. Folder Structure (Project Monorepo)
+
+```text
+/social-platform
+├── /frontend               # Next.js Application
+│   ├── /src/app            # App Router pages
+│   └── /src/components     # Shared UI components
+├── /backend                # Express API Service
+│   ├── /models             # Mongoose Schemas (User, Post, Matrimony)
+│   ├── /routes             # API Endpoint handlers
+│   └── /socketHandlers.js  # Real-time logic
+├── .gitignore              # Unified monorepo ignore rules
+├── package.json            # Root scripts (concurrently dev mode)
+└── ARCHITECTURE.md
+```
+
+## 11. Step-by-Step Development Roadmap
+
+*   **Phase 1: Foundation & MVP (Completed ✅)**
+    *   Monorepo setup with Auth, Feed, and Profile logic.
+    *   Cloudinary integration for persistent media storage.
+    *   Core Social Feed (create post, view feed, likes/comments).
+*   **Phase 2: Discovery & Real-time (Completed ✅)**
+    *   WebSocket 1-on-1 Chat system.
+    *   Matrimony "Smart Filters" (Religion, Caste, Occupation, Income).
+    *   Public User Profiles and Follow/Unfollow system.
+*   **Phase 3: Deployment & Stability (Completed ✅)**
+    *   Render (Backend) and Vercel (Frontend) production deployment.
+    *   Redis-optionality for free-tier resilience.
+    *   Environment-aware URL configuration.
+*   **Phase 4: Scaling & Advanced Features (In Progress 🚀)**
+    *   Feed recommendation algorithms.
+    *   Notification service (Push/Email).
+    *   Matrimony AI-matching score.
+
+## 11. Design System: "Sunset Glow"
+
+The platform implements a signature design system to ensure a premium, modern user experience:
+
+*   **Color Palette**:
+    *   `bg-bg`: `#f9f8f6` (Warm paper-white for comfort).
+    *   `coral-primary`: `#F46B5C` (Signature brand color).
+    *   `stone-text`: High-contrast charcoal for clarity.
+*   **Aesthetics**: 
+    *   **SVG-First**: Emojis are replaced by a clean, consistent SVG icon set.
+    *   **Pill UI**: Buttons and indicators use full rounding (`rounded-full`) for a friendly, modern feel.
+    *   **Micro-animations**: Fade-in and heart-pop effects for interactive elements.
+
+## 12. Optional Enhancements
+
+*   **AI Matchmaking**: Instead of hard-coded SQL queries, use **Vector Databases** (like Pinecone or pgvector). Convert Matrimony profiles into embeddings via an LLM. Search for matches using cosine similarity to find users with genuinely compatible interests, not just matching checkboxes.
+*   **Feed Recommendation System**: Implement a collaborative filtering algorithm. Track engagement (time spent looking at a post, likes, shares) and feed this into an AWS Personalize model to shift the feed from purely chronological to engagement-driven.
