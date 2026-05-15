@@ -51,24 +51,19 @@ function uploadToCloudinary(buffer, options) {
 }
 
 /**
- * Check video duration after upload and delete if it exceeds the limit.
+ * Check video duration and delete if it exceeds the limit.
+ * Takes the duration directly from the upload result to avoid an extra API call.
  */
-async function enforceDurationLimit(publicId) {
-  try {
-    const result = await cloudinary.api.resource(publicId, {
-      resource_type: 'video',
-      media_metadata: true,
-    });
-    const duration = result.duration || 0;
-    if (duration > VIDEO_MAX_DURATION_SEC) {
+async function enforceDurationLimit(publicId, duration) {
+  if (duration > VIDEO_MAX_DURATION_SEC) {
+    try {
       await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
-      return `Video duration (${Math.ceil(duration)}s) exceeds the ${VIDEO_MAX_DURATION_SEC}s limit.`;
+    } catch (err) {
+      console.error('Failed to delete over-length video:', err);
     }
-    return null;
-  } catch (err) {
-    console.error('Duration check error:', err);
-    return null;
+    return `Video duration (${Math.ceil(duration)}s) exceeds the ${VIDEO_MAX_DURATION_SEC}s limit.`;
   }
+  return null;
 }
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
@@ -153,8 +148,8 @@ router.post('/video', auth, (req, res) => {
         ],
       });
 
-      // Enforce duration limit
-      const durationError = await enforceDurationLimit(result.public_id);
+      // Enforce duration limit using the duration returned in the upload result
+      const durationError = await enforceDurationLimit(result.public_id, result.duration || 0);
       if (durationError) {
         return res.status(400).json({ error: durationError });
       }
@@ -215,7 +210,7 @@ router.post('/', auth, (req, res) => {
       const result = await uploadToCloudinary(req.file.buffer, opts);
 
       if (isVideo) {
-        const durationError = await enforceDurationLimit(result.public_id);
+        const durationError = await enforceDurationLimit(result.public_id, result.duration || 0);
         if (durationError) return res.status(400).json({ error: durationError });
       }
 

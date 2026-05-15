@@ -37,15 +37,38 @@ export default function CreatePostModal({ onPostCreated, onClose }: Props) {
 
     if (f.size > limit) {
       setError(`${fileIsVideo ? 'Video' : 'Image'} must be under ${limitMb} MB. Your file is ${(f.size / 1024 / 1024).toFixed(1)} MB.`);
-      // Reset the input so the same file can be re-selected after fixing
       if (fileRef.current) fileRef.current.value = '';
       return;
     }
 
-    setError('');
-    setIsVideo(fileIsVideo);
-    setSelectedFile(f);
-    setPreviewUrl(URL.createObjectURL(f));
+    if (fileIsVideo) {
+      // ── Client-side duration validation ────────────────────────────────────
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        if (video.duration > 90) {
+          setError(`Video is too long (${Math.ceil(video.duration)}s). Maximum allowed is 90 seconds.`);
+          setSelectedFile(null);
+          setPreviewUrl(null);
+          if (fileRef.current) fileRef.current.value = '';
+        } else {
+          setError('');
+          setIsVideo(true);
+          setSelectedFile(f);
+          setPreviewUrl(URL.createObjectURL(f));
+        }
+      };
+      video.onerror = () => {
+        setError('Could not process video file. Please try another.');
+      };
+      video.src = URL.createObjectURL(f);
+    } else {
+      setError('');
+      setIsVideo(false);
+      setSelectedFile(f);
+      setPreviewUrl(URL.createObjectURL(f));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
