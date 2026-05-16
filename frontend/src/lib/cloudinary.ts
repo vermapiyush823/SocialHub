@@ -94,14 +94,15 @@ export function getVideoUrl(publicId: string): string {
  *
  * @param user - Partial user object with profilePicPublicId and/or profilePicUrl
  */
-export function resolveAvatarUrl(user: {
+export function resolveAvatarUrl(user?: {
   profilePicPublicId?: string;
   profilePicUrl?: string;
-}): string {
-  if (user?.profilePicPublicId) {
+} | null): string {
+  if (!user) return '';
+  if (user.profilePicPublicId) {
     return getProfilePicUrl(user.profilePicPublicId);
   }
-  return user?.profilePicUrl || '';
+  return user.profilePicUrl || '';
 }
 
 // ─── Legacy URL helpers ─────────────────────────────────────────────────────
