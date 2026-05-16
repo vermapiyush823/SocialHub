@@ -13,7 +13,7 @@ module.exports = (io, redisClient) => {
         return next(new Error('Authentication required'));
       }
       const decoded = verifyToken(token);
-      const user = await User.findById(decoded.id).select('name profilePic');
+      const user = await User.findById(decoded.id).select('name profilePicPublicId profilePicUrl');
       if (!user) return next(new Error('User not found'));
       socket.userId = user._id.toString();
       socket.userName = user.name;
@@ -76,7 +76,7 @@ module.exports = (io, redisClient) => {
           readBy: [userId],
         });
         await message.save();
-        await message.populate('senderId', 'name profilePic');
+        await message.populate('senderId', 'name profilePicPublicId profilePicUrl');
         if (replyTo) {
           await message.populate('replyTo', 'content senderId');
         }

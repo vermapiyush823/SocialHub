@@ -4,6 +4,7 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL
   || (typeof window !== 'undefined' ? `http://${window.location.hostname}:4000` : 'http://localhost:4000');
 
 let socket: Socket | null = null;
+let listenersAttached = false;
 
 export const getSocket = (token: string): Socket => {
   if (!socket) {
@@ -17,9 +18,10 @@ export const getSocket = (token: string): Socket => {
 
 export const connectSocket = (token: string) => {
   const s = getSocket(token);
-  if (!s.connected) {
-    s.auth = { token };
-    s.connect();
+  s.auth = { token };
+
+  if (!listenersAttached) {
+    listenersAttached = true;
     s.on('connect', () => {
       console.log('🔌 Socket connected:', s.id);
       s.emit('join_chats');
@@ -28,6 +30,10 @@ export const connectSocket = (token: string) => {
       console.error('Socket auth error:', err.message);
     });
   }
+
+  if (!s.connected) {
+    s.connect();
+  }
   return s;
 };
 
@@ -35,5 +41,6 @@ export const disconnectSocket = () => {
   if (socket) {
     socket.disconnect();
     socket = null;
+    listenersAttached = false;
   }
 };
