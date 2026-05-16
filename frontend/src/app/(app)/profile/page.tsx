@@ -31,6 +31,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profileData, setProfileData] = useState<any>(null);
+  const [optimisticAvatar, setOptimisticAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -83,26 +84,29 @@ export default function ProfilePage() {
       return;
     }
 
+    const previewUrl = URL.createObjectURL(file);
+    setOptimisticAvatar(previewUrl);
     setUploadingPic(true);
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      // Upload image and receive { publicId, type }
       const uploadRes = await api.post('/upload/image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       const { publicId } = uploadRes.data;
 
-      // Store only the publicId — URL built dynamically via cloudinary.ts
       const res = await api.patch('/users/profile', { profilePicPublicId: publicId });
       updateUser(res.data.user);
       setProfileData(res.data.user);
+      setOptimisticAvatar(null); // Clear once backend confirms
     } catch (e) {
       console.error(e);
       alert('Failed to upload picture');
+      setOptimisticAvatar(null);
     } finally {
       setUploadingPic(false);
+      URL.revokeObjectURL(previewUrl);
     }
   };
 
@@ -167,21 +171,24 @@ export default function ProfilePage() {
                 if (!showPreview) fileInputRef.current?.click();
               }}
             >
-              {resolveLargeAvatarUrl(user) ? (
+              {optimisticAvatar || resolveLargeAvatarUrl(user) ? (
                 <img
-                  src={resolveLargeAvatarUrl(user)}
+                  src={optimisticAvatar || resolveLargeAvatarUrl(user)}
                   alt="Profile"
-                  className="w-full h-full rounded-full object-cover border-4 border-white shadow-md group-hover:brightness-90 transition-all"
+                  className={`w-full h-full rounded-full object-cover border-4 border-white shadow-md group-hover:brightness-90 transition-all ${uploadingPic ? 'animate-pulse opacity-70' : ''}`}
                 />
               ) : (
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center font-bold text-rose-500 text-4xl border-4 border-white shadow-md">
+                <div className={`w-full h-full rounded-full bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center font-bold text-rose-500 text-4xl border-4 border-white shadow-md ${uploadingPic ? 'animate-pulse' : ''}`}>
                   {user?.name?.charAt(0)?.toUpperCase()}
                 </div>
               )}
               
-              <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className={`absolute inset-0 bg-black/20 rounded-full flex items-center justify-center transition-opacity ${uploadingPic ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                 {uploadingPic ? (
-                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span className="text-[10px] font-bold text-white uppercase tracking-tighter">Uploading</span>
+                  </div>
                 ) : (
                   <div className="bg-white/20 backdrop-blur-sm p-2 rounded-full">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>

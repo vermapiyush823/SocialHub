@@ -6,9 +6,10 @@ import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
 import { connectSocket } from '@/lib/socket';
 import type { Socket } from 'socket.io-client';
+import { resolveAvatarUrl } from '@/lib/cloudinary';
 
-interface Msg { _id: string; chatId: string; senderId: { _id: string; name: string } | string; content: string; type: string; status: string; readBy: string[]; createdAt: string }
-interface ChatInfo { _id: string; isGroup: boolean; groupName: string; isGlobal: boolean; description: string; admin: string; participants: Array<{ _id: string; name: string; isOnline: boolean; lastSeen: string }> }
+interface Msg { _id: string; chatId: string; senderId: { _id: string; name: string; profilePicPublicId?: string; profilePicUrl?: string } | string; content: string; type: string; status: string; readBy: string[]; createdAt: string }
+interface ChatInfo { _id: string; isGroup: boolean; groupName: string; isGlobal: boolean; description: string; admin: string; participants: Array<{ _id: string; name: string; profilePicPublicId?: string; profilePicUrl?: string; isOnline: boolean; lastSeen: string }> }
 interface JoinRequest { _id: string; name: string; profilePicPublicId?: string; profilePicUrl?: string; email: string }
 
 export default function ChatRoomPage() {
@@ -35,7 +36,19 @@ export default function ChatRoomPage() {
   const chatName = chatInfo?.isGroup ? chatInfo.groupName : other?.name || 'Chat';
   const getSenderId = (m: Msg) => typeof m.senderId === 'string' ? m.senderId : m.senderId._id;
   const getSenderName = (m: Msg) => typeof m.senderId === 'string' ? '' : m.senderId.name;
-  const fmtTime = (d: string) => new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const fmtTime = (d: string) => {
+    const date = new Date(d);
+    const now = new Date();
+    const timeStr = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase();
+    
+    if (date.toDateString() === now.toDateString()) {
+      return `today at ${timeStr}`;
+    }
+    
+    const day = date.getDate();
+    const month = date.toLocaleDateString([], { month: 'short' }).toLowerCase();
+    return `${day} ${month} at ${timeStr}`;
+  };
 
   useEffect(() => {
     if (!chatId || !token) return;
@@ -110,8 +123,14 @@ export default function ChatRoomPage() {
       <div className="bg-white border-b border-stone-200 px-4 py-3 flex items-center gap-3 shrink-0 z-10">
         <button onClick={() => router.push('/chat')} className="p-1.5 rounded-lg hover:bg-stone-100 cursor-pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
         <div className="relative">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-base ${chatInfo?.isGlobal ? 'bg-gradient-to-br from-coral-gradient-start to-coral-primary text-white shadow-md' : 'bg-coral-light text-coral-primary'}`}>
-            {chatInfo?.isGlobal ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> : chatName.charAt(0).toUpperCase()}
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-base overflow-hidden ${chatInfo?.isGlobal ? 'bg-gradient-to-br from-coral-gradient-start to-coral-primary text-white shadow-md' : 'bg-coral-light text-coral-primary'}`}>
+            {chatInfo?.isGlobal ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            ) : resolveAvatarUrl(other) ? (
+              <img src={resolveAvatarUrl(other)} alt={chatName} className="w-full h-full object-cover" />
+            ) : (
+              chatName.charAt(0).toUpperCase()
+            )}
           </div>
           {other && !chatInfo?.isGroup && <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${other.isOnline ? 'bg-green-500' : 'bg-stone-400'}`} />}
         </div>
@@ -141,7 +160,15 @@ export default function ChatRoomPage() {
             <div className="flex justify-between items-center mb-4"><h2 className="font-bold">Join Requests</h2><button onClick={() => setShowRequests(false)} className="text-stone-400 cursor-pointer hover:text-stone-700">✕</button></div>
             {joinRequests.map(r => (
               <div key={r._id} className="flex items-center gap-3 mb-3 p-3 border border-stone-100 rounded-xl bg-bg">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-50 to-coral-light flex items-center justify-center font-bold text-coral-primary">{r.name.charAt(0).toUpperCase()}</div>
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-stone-100 shrink-0">
+                  {resolveAvatarUrl(r) ? (
+                    <img src={resolveAvatarUrl(r)} alt={r.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-orange-50 to-coral-light flex items-center justify-center font-bold text-coral-primary">
+                      {r.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
                 <div className="flex-1 min-w-0"><div className="font-bold text-sm text-stone-900 truncate">{r.name}</div></div>
                 <div className="flex gap-1 shrink-0">
                   <button onClick={() => handleRequest(r._id, 'approve')} className="px-3 py-1.5 bg-coral-primary text-white text-xs font-semibold rounded-lg cursor-pointer hover:bg-coral-hover">Approve</button>
@@ -167,7 +194,15 @@ export default function ChatRoomPage() {
             <div className="max-h-[50vh] overflow-y-auto">
               {searchResults.map(u => (
                 <div key={u._id} className="flex items-center gap-3 mb-2 p-2.5 rounded-xl hover:bg-bg transition-colors">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-50 to-coral-light flex items-center justify-center font-bold text-coral-primary text-sm">{u.name?.charAt(0)?.toUpperCase()}</div>
+                  <div className="w-9 h-9 rounded-full overflow-hidden border border-stone-100 shrink-0">
+                    {resolveAvatarUrl(u) ? (
+                      <img src={resolveAvatarUrl(u)} alt={u.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-orange-50 to-coral-light flex items-center justify-center font-bold text-coral-primary text-sm">
+                        {u.name?.charAt(0)?.toUpperCase()}
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0"><div className="font-semibold text-sm text-stone-900 truncate">{u.name}</div><div className="text-xs text-stone-400 truncate">{u.email}</div></div>
                   <button onClick={() => inviteUser(u._id)} className="px-3 py-1.5 bg-orange-50 text-coral-hover text-xs font-semibold rounded-lg cursor-pointer hover:bg-coral-light">Invite</button>
                 </div>
@@ -191,7 +226,17 @@ export default function ChatRoomPage() {
           const showAv = !isMe && (i === 0 || getSenderId(messages[i-1]) !== getSenderId(m));
           return (
             <div key={m._id||i} className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'} ${showAv ? 'mt-3' : ''}`}>
-              {!isMe && showAv && <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-50 to-coral-light flex items-center justify-center font-bold text-coral-primary text-[10px] shrink-0">{getSenderName(m).charAt(0).toUpperCase()}</div>}
+              {!isMe && showAv && (
+                <div className="w-7 h-7 rounded-full overflow-hidden border border-stone-100 shrink-0">
+                  {resolveAvatarUrl(typeof m.senderId === 'string' ? null : m.senderId) ? (
+                    <img src={resolveAvatarUrl(typeof m.senderId === 'string' ? null : m.senderId)} alt={getSenderName(m)} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-orange-50 to-coral-light flex items-center justify-center font-bold text-coral-primary text-[10px]">
+                      {getSenderName(m).charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+              )}
               {!isMe && !showAv && <div className="w-7 shrink-0" />}
               <div className={`max-w-[70%] px-3.5 py-2.5 break-words text-[15px] leading-snug ${isMe ? 'bg-coral-primary text-white rounded-2xl rounded-br-sm shadow-[0_2px_8px_rgba(244,63,94,0.25)]' : 'bg-white text-stone-900 rounded-2xl rounded-bl-sm shadow-sm'}`}>
                 <div>{m.content}</div>

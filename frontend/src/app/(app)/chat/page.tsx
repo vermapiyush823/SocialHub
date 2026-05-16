@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
 import { connectSocket } from '@/lib/socket';
+import { resolveAvatarUrl } from '@/lib/cloudinary';
 
 type Tab = 'chats' | 'discover';
 type NewChatMode = 'user' | 'group';
@@ -159,8 +160,14 @@ export default function ChatListPage() {
                 {searchResults.map(u => (
                   <button key={u._id} onClick={() => startChat(u._id)}
                     className="flex items-center gap-3 w-full p-3 rounded-xl text-left hover:bg-bg transition-colors cursor-pointer">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-50 to-rose-100 flex items-center justify-center font-bold text-coral-primary text-sm shrink-0">
-                      {u.name?.charAt(0)?.toUpperCase()}
+                    <div className="w-10 h-10 rounded-full shrink-0 overflow-hidden border border-stone-100">
+                      {resolveAvatarUrl(u) ? (
+                        <img src={resolveAvatarUrl(u)} alt={u.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-orange-50 to-rose-100 flex items-center justify-center font-bold text-coral-primary text-sm">
+                          {u.name?.charAt(0)?.toUpperCase()}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <div className="font-semibold text-[15px]">{u.name}</div>
@@ -215,8 +222,14 @@ export default function ChatListPage() {
                   className="flex items-center gap-3 w-full px-3 py-3.5 rounded-xl text-left hover:bg-stone-100 transition-colors cursor-pointer"
                 >
                   <div className="relative shrink-0">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${c.isGlobal ? 'bg-gradient-to-br from-coral-gradient-start to-coral-primary text-white shadow-md' : 'bg-gradient-to-br from-orange-50 to-rose-100 text-coral-primary'}`}>
-                      {c.isGlobal ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> : name.charAt(0).toUpperCase()}
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg overflow-hidden ${c.isGlobal ? 'bg-gradient-to-br from-coral-gradient-start to-coral-primary text-white shadow-md' : 'bg-gradient-to-br from-orange-50 to-rose-100 text-coral-primary'}`}>
+                      {c.isGlobal ? (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                      ) : resolveAvatarUrl(c.otherUser) ? (
+                        <img src={resolveAvatarUrl(c.otherUser)} alt={name} className="w-full h-full object-cover" />
+                      ) : (
+                        name.charAt(0).toUpperCase()
+                      )}
                     </div>
                     {online && <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white bg-green-500" />}
                   </div>

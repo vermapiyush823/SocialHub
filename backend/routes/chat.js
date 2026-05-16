@@ -14,7 +14,7 @@ router.get('/conversations', auth, async (req, res) => {
         { isGlobal: true }
       ]
     })
-      .populate('participants', 'name profilePic isOnline lastSeen')
+      .populate('participants', 'name profilePicPublicId profilePicUrl isOnline lastSeen')
       .populate('lastMessage.senderId', 'name')
       .sort({ 'lastMessage.timestamp': -1 });
 
@@ -69,7 +69,7 @@ router.post('/conversations', auth, async (req, res) => {
     let chat = await Chat.findOne({
       isGroup: false,
       participants: { $all: [req.user._id, participantId], $size: 2 },
-    }).populate('participants', 'name profilePic isOnline lastSeen');
+    }).populate('participants', 'name profilePicPublicId profilePicUrl isOnline lastSeen');
 
     if (chat) {
       return res.json({ conversation: chat, isNew: false });
@@ -81,7 +81,7 @@ router.post('/conversations', auth, async (req, res) => {
       isGroup: false,
     });
     await chat.save();
-    await chat.populate('participants', 'name profilePic isOnline lastSeen');
+    await chat.populate('participants', 'name profilePicPublicId profilePicUrl isOnline lastSeen');
 
     res.status(201).json({ conversation: chat, isNew: true });
   } catch (err) {
@@ -115,7 +115,7 @@ router.get('/:chatId/messages', auth, async (req, res) => {
     }
 
     const messages = await Message.find(query)
-      .populate('senderId', 'name profilePic')
+      .populate('senderId', 'name profilePicPublicId profilePicUrl')
       .populate('replyTo', 'content senderId')
       .sort({ createdAt: -1 })
       .limit(parseInt(limit));
@@ -159,7 +159,7 @@ router.post('/group', auth, async (req, res) => {
       admin: req.user._id,
     });
     await chat.save();
-    await chat.populate('participants', 'name profilePic isOnline lastSeen');
+    await chat.populate('participants', 'name profilePicPublicId profilePicUrl isOnline lastSeen');
 
     res.status(201).json({ conversation: chat });
   } catch (err) {
@@ -232,7 +232,7 @@ router.post('/group/:chatId/request', auth, async (req, res) => {
 // GET /api/chat/group/:chatId/requests — Get join requests for a group
 router.get('/group/:chatId/requests', auth, async (req, res) => {
   try {
-    const chat = await Chat.findById(req.params.chatId).populate('joinRequests', 'name profilePic email');
+    const chat = await Chat.findById(req.params.chatId).populate('joinRequests', 'name profilePicPublicId profilePicUrl email');
     if (!chat) return res.status(404).json({ error: 'Group not found' });
     
     if (chat.admin?.toString() !== req.user._id.toString()) {
