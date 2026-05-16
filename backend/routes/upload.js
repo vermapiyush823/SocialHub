@@ -1,17 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const cloudinary = require('../config/cloudinary');
+const { uploadToCloudinary, enforceDurationLimit } = require('../utils/cloudinary');
 const auth = require('../middleware/auth');
 
 // ─── Upload limits ────────────────────────────────────────────────────────────
 const IMAGE_MAX_BYTES = 10 * 1024 * 1024;   // 10 MB (client file)
 const VIDEO_MAX_BYTES = 100 * 1024 * 1024;  // 100 MB
-const VIDEO_MAX_DURATION_SEC = 90;           // 90 seconds
 
 // ─── Use memory storage so we control the Cloudinary upload ourselves ─────────
-// This lets us pass `transformation` and `eager` params that
-// multer-storage-cloudinary silently drops.
 const memImageUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: IMAGE_MAX_BYTES },
@@ -34,39 +31,6 @@ const memVideoUpload = multer({
   },
 });
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/**
- * Upload a buffer to Cloudinary via upload_stream.
- * Returns the Cloudinary response (public_id, bytes, format, etc.)
- */
-function uploadToCloudinary(buffer, options) {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(options, (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-    stream.end(buffer);
-  });
-}
-
-/**
- * Check video duration and delete if it exceeds the limit.
- * Takes the duration directly from the upload result to avoid an extra API call.
- */
-async function enforceDurationLimit(publicId, duration) {
-  if (duration > VIDEO_MAX_DURATION_SEC) {
-    try {
-      await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
-    } catch (err) {
-      console.error('Failed to delete over-length video:', err);
-    }
-    return `Video duration (${Math.ceil(duration)}s) exceeds the ${VIDEO_MAX_DURATION_SEC}s limit.`;
-  }
-  return null;
-}
-
-// ─── Routes ───────────────────────────────────────────────────────────────────
 
 // POST /api/upload/image
 // Compresses + resizes the image AT UPLOAD TIME so the stored asset is small.

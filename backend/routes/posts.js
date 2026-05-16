@@ -116,6 +116,8 @@ router.post('/:id/like', auth, async (req, res) => {
   }
 });
 
+const { deleteFromCloudinary } = require('../utils/cloudinary');
+
 // DELETE /api/posts/:id — Delete own post
 router.delete('/:id', auth, async (req, res) => {
   try {
@@ -123,6 +125,16 @@ router.delete('/:id', auth, async (req, res) => {
     if (!post) {
       return res.status(404).json({ error: 'Post not found or not authorized' });
     }
+
+    // Delete associated media from Cloudinary
+    if (post.media && post.media.length > 0) {
+      for (const item of post.media) {
+        if (item.publicId) {
+          await deleteFromCloudinary(item.publicId, item.type || 'image');
+        }
+      }
+    }
+
     post.isDeleted = true;
     await post.save();
     res.json({ message: 'Post deleted' });
@@ -133,3 +145,4 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 module.exports = router;
+

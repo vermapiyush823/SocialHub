@@ -21,6 +21,8 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
+const { deleteFromCloudinary } = require('../utils/cloudinary');
+
 // PATCH /api/users/profile — Update own profile
 router.patch('/profile', auth, async (req, res) => {
   try {
@@ -33,6 +35,13 @@ router.patch('/profile', auth, async (req, res) => {
       }
     });
 
+    // If profile picture is being updated, delete the old one from Cloudinary
+    if (req.body.profilePicPublicId && req.body.profilePicPublicId !== req.user.profilePicPublicId) {
+      if (req.user.profilePicPublicId) {
+        await deleteFromCloudinary(req.user.profilePicPublicId);
+      }
+    }
+
     const user = await User.findByIdAndUpdate(req.user._id, updates, { 
       new: true, 
       runValidators: true 
@@ -44,6 +53,7 @@ router.patch('/profile', auth, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 // POST /api/users/:id/follow — Toggle follow/unfollow
 router.post('/:id/follow', auth, async (req, res) => {
