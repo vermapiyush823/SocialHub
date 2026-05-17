@@ -48,30 +48,30 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-dvh px-6 bg-bg">
+    <div className="flex flex-col items-center justify-center min-h-dvh px-6 bg-bg dark:bg-dm-bg">
       <div className="animate-fade-in w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
           <h1 className="text-4xl font-black tracking-tight text-coral-primary mb-2" style={{ fontFamily: 'Georgia, serif' }}>
             SocialHub
           </h1>
-          <p className="text-stone-500 text-[15px] font-medium">Welcome back! Sign in to continue.</p>
+          <p className="text-stone-500 dark:text-dm-muted text-[15px] font-medium">Welcome back! Sign in to continue.</p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-[32px] border-none shadow-[0_8px_40px_rgba(244,107,92,0.08)] p-8">
+        <div className="bg-white dark:bg-dm-surface rounded-[32px] border-none shadow-[0_8px_40px_rgba(244,107,92,0.08)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.3)] p-8">
           <form onSubmit={handleSubmit}>
             {error && (
-              <div className="px-4 py-3 rounded-lg bg-red-50 text-red-600 text-sm mb-5 border border-red-200">
+              <div className="px-4 py-3 rounded-lg bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-sm mb-5 border border-red-200 dark:border-red-900">
                 {error}
               </div>
             )}
 
             <div className="mb-5">
-              <label className="block text-xs font-semibold text-stone-500 mb-1.5">Email</label>
+              <label className="block text-xs font-semibold text-stone-500 dark:text-dm-muted mb-1.5">Email</label>
               <input
                 type="email"
-                className="w-full px-4 py-3.5 border-[1.5px] border-stone-100 rounded-2xl text-[15px] text-stone-900 bg-bg/50 outline-none transition-all focus:border-coral-primary focus:bg-white focus:ring-4 focus:ring-coral-light placeholder:text-stone-400"
+                className="w-full px-4 py-3.5 border-[1.5px] border-stone-100 dark:border-dm-border rounded-2xl text-[15px] text-stone-900 dark:text-dm-text bg-bg/50 dark:bg-dm-surface2 outline-none transition-all focus:border-coral-primary focus:bg-white dark:focus:bg-dm-bg focus:ring-4 focus:ring-coral-light placeholder:text-stone-400 dark:placeholder:text-dm-muted"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -81,10 +81,10 @@ export default function LoginPage() {
             </div>
 
             <div className="mb-7">
-              <label className="block text-xs font-semibold text-stone-500 mb-1.5">Password</label>
+              <label className="block text-xs font-semibold text-stone-500 dark:text-dm-muted mb-1.5">Password</label>
               <input
                 type="password"
-                className="w-full px-4 py-3.5 border-[1.5px] border-stone-100 rounded-2xl text-[15px] text-stone-900 bg-bg/50 outline-none transition-all focus:border-coral-primary focus:bg-white focus:ring-4 focus:ring-coral-light placeholder:text-stone-400"
+                className="w-full px-4 py-3.5 border-[1.5px] border-stone-100 dark:border-dm-border rounded-2xl text-[15px] text-stone-900 dark:text-dm-text bg-bg/50 dark:bg-dm-surface2 outline-none transition-all focus:border-coral-primary focus:bg-white dark:focus:bg-dm-bg focus:ring-4 focus:ring-coral-light placeholder:text-stone-400 dark:placeholder:text-dm-muted"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -103,9 +103,9 @@ export default function LoginPage() {
             </button>
 
             <div className="flex items-center my-6">
-              <div className="flex-1 border-t border-stone-200"></div>
-              <span className="px-3 text-xs text-stone-400 font-medium">OR</span>
-              <div className="flex-1 border-t border-stone-200"></div>
+              <div className="flex-1 border-t border-stone-200 dark:border-dm-border"></div>
+              <span className="px-3 text-xs text-stone-400 dark:text-dm-muted font-medium">OR</span>
+              <div className="flex-1 border-t border-stone-200 dark:border-dm-border"></div>
             </div>
 
             <div className="flex justify-center">
@@ -121,7 +121,7 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center mt-8 text-[15px] text-stone-500 font-medium">
+        <p className="text-center mt-8 text-[15px] text-stone-500 dark:text-dm-muted font-medium">
           Don&apos;t have an account?{' '}
           <Link href="/register" className="text-coral-primary font-bold hover:text-coral-hover underline decoration-coral-light underline-offset-4 decoration-2">
             Create one

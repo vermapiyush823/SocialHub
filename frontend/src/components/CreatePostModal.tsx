@@ -116,11 +116,11 @@ export default function CreatePostModal({ onPostCreated, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-[1001] bg-black/50 flex items-start justify-center pt-12" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-md mx-4 shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-dm-surface rounded-2xl w-full max-w-md mx-4 shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
-          <h2 className="text-lg font-bold text-stone-900">Create Post</h2>
-          <button onClick={onClose} className="p-2 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-50 transition-colors cursor-pointer">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100 dark:border-dm-border">
+          <h2 className="text-lg font-bold text-stone-900 dark:text-dm-text">Create Post</h2>
+          <button onClick={onClose} className="p-2 rounded-xl text-stone-400 dark:text-dm-muted hover:text-stone-600 dark:hover:text-dm-text hover:bg-stone-50 dark:hover:bg-dm-surface2 transition-colors cursor-pointer">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6L6 18M6 6l12 12"/>
             </svg>
@@ -130,12 +130,12 @@ export default function CreatePostModal({ onPostCreated, onClose }: Props) {
         <form onSubmit={handleSubmit}>
           <div className="p-5">
             {error && (
-              <div className="px-4 py-3 rounded-lg bg-red-50 text-red-600 text-sm mb-3 border border-red-200">
+              <div className="px-4 py-3 rounded-lg bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-sm mb-3 border border-red-200 dark:border-red-900">
                 {error}
               </div>
             )}
             <textarea
-              className="w-full min-h-[100px] border-none outline-none text-base text-stone-900 resize-none placeholder:text-stone-400 leading-relaxed"
+              className="w-full min-h-[100px] border-none outline-none text-base text-stone-900 dark:text-dm-text bg-transparent resize-none placeholder:text-stone-400 dark:placeholder:text-dm-muted leading-relaxed"
               placeholder="What's on your mind?"
               value={caption}
               onChange={e => setCaption(e.target.value)}
@@ -145,7 +145,7 @@ export default function CreatePostModal({ onPostCreated, onClose }: Props) {
 
             {/* Media preview */}
             {previewUrl && (
-              <div className="relative mt-4 rounded-xl overflow-hidden border border-stone-200">
+              <div className="relative mt-4 rounded-xl overflow-hidden border border-stone-200 dark:border-dm-border">
                 {isVideo ? (
                   <video
                     src={previewUrl}
@@ -168,14 +168,14 @@ export default function CreatePostModal({ onPostCreated, onClose }: Props) {
                 {/* File info badge */}
                 {selectedFile && (
                   <div className="absolute bottom-2 left-2 bg-black/50 text-white text-[11px] px-2 py-0.5 rounded-full">
-                    {isVideo ? '🎬' : '🖼️'} {(selectedFile.size / 1024 / 1024).toFixed(1)} MB
+                    {(selectedFile.size / 1024 / 1024).toFixed(1)} MB
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-between px-5 py-4 border-t border-stone-100">
+          <div className="flex items-center justify-between px-5 py-4 border-t border-stone-100 dark:border-dm-border">
             <input
               ref={fileRef}
               type="file"
@@ -187,7 +187,7 @@ export default function CreatePostModal({ onPostCreated, onClose }: Props) {
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-stone-100 text-stone-600 text-sm font-medium hover:bg-stone-200 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-stone-100 dark:bg-dm-surface2 text-stone-600 dark:text-dm-text text-sm font-medium hover:bg-stone-200 dark:hover:bg-dm-border transition-colors cursor-pointer"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>

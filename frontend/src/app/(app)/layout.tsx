@@ -20,7 +20,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-dvh">
+      <div className="flex items-center justify-center min-h-dvh bg-bg dark:bg-dm-bg">
         <div className="w-8 h-8 border-3 border-stone-200 border-t-rose-500 rounded-full animate-spin" />
       </div>
     );

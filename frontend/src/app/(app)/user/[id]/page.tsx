@@ -81,27 +81,27 @@ export default function UserProfilePage() {
 
   if (!profileUser) {
     return (
-      <div className="min-h-dvh bg-bg flex justify-center p-20">
+      <div className="min-h-dvh bg-bg dark:bg-dm-bg flex justify-center p-20">
         <div className="w-8 h-8 border-4 border-stone-200 border-t-coral-primary rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-dvh bg-bg pb-24">
+    <div className="min-h-dvh bg-bg dark:bg-dm-bg pb-24">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-50/50 px-5 pt-5 pb-3 flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2 rounded-full hover:bg-stone-100 text-stone-600 transition-colors cursor-pointer">
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-dm-surface/90 backdrop-blur-xl border-b border-stone-50/50 dark:border-dm-border px-5 pt-5 pb-3 flex items-center gap-3">
+        <button onClick={() => router.back()} className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-dm-surface2 text-stone-600 dark:text-dm-muted transition-colors cursor-pointer">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
-        <h1 className="text-[20px] font-bold text-stone-900">{profileUser.name}</h1>
+        <h1 className="text-[20px] font-bold text-stone-900 dark:text-dm-text">{profileUser.name}</h1>
       </header>
 
       {/* Profile content */}
       <div className="p-5 max-w-2xl mx-auto flex flex-col gap-6">
         
         {/* Profile card */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-8 text-center animate-fade-in relative">
+        <div className="bg-white dark:bg-dm-surface rounded-2xl border border-stone-100 dark:border-dm-border shadow-sm p-8 text-center animate-fade-in relative">
           {/* Avatar */}
           <div className="relative w-24 h-24 mx-auto mb-4">
             {resolveAvatarUrl(profileUser) ? (
@@ -117,8 +117,8 @@ export default function UserProfilePage() {
             )}
           </div>
 
-          <h2 className="text-[22px] font-bold text-stone-900 mb-1">{profileUser.name}</h2>
-          <p className="text-sm text-stone-400 mb-5">{profileUser.bio || 'No bio yet.'}</p>
+          <h2 className="text-[22px] font-bold text-stone-900 dark:text-dm-text mb-1">{profileUser.name}</h2>
+          <p className="text-sm text-stone-400 dark:text-dm-muted mb-5">{profileUser.bio || 'No bio yet.'}</p>
           
           <button 
             onClick={handleFollowToggle} 
@@ -139,16 +139,16 @@ export default function UserProfilePage() {
             { label: 'Followers', value: followersCount },
             { label: 'Following', value: profileUser.following?.length || 0 },
           ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 text-center">
-              <div className="text-[22px] font-extrabold text-stone-900 leading-tight">{stat.value}</div>
-              <div className="text-[12px] font-medium text-stone-400">{stat.label}</div>
+            <div key={stat.label} className="bg-white dark:bg-dm-surface rounded-2xl border border-stone-100 dark:border-dm-border shadow-sm p-4 text-center">
+              <div className="text-[22px] font-extrabold text-stone-900 dark:text-dm-text leading-tight">{stat.value}</div>
+              <div className="text-[12px] font-medium text-stone-400 dark:text-dm-muted">{stat.label}</div>
             </div>
           ))}
         </div>
 
         {/* User's Posts Feed */}
         <div className="mt-4">
-          <h3 className="text-lg font-bold text-stone-900 mb-4">Posts</h3>
+          <h3 className="text-lg font-bold text-stone-900 dark:text-dm-text mb-4">Posts</h3>
           
           {loading ? (
             <div className="flex justify-center p-8">

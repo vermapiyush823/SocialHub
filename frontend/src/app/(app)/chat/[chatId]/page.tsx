@@ -119,9 +119,9 @@ export default function ChatRoomPage() {
   };
 
   return (
-    <div className="flex flex-col h-dvh bg-gradient-to-b from-stone-100 to-stone-50 overflow-hidden">
-      <div className="bg-white border-b border-stone-200 px-4 py-3 flex items-center gap-3 shrink-0 z-10">
-        <button onClick={() => router.push('/chat')} className="p-1.5 rounded-lg hover:bg-stone-100 cursor-pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div className="flex flex-col h-dvh bg-gradient-to-b from-stone-100 to-stone-50 dark:from-dm-bg dark:to-dm-surface overflow-hidden">
+      <div className="bg-white dark:bg-dm-surface border-b border-stone-200 dark:border-dm-border px-4 py-3 flex items-center gap-3 shrink-0 z-10">
+        <button onClick={() => router.push('/chat')} className="p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-dm-surface2 text-stone-900 dark:text-dm-text cursor-pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
         <div className="relative">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-base overflow-hidden ${chatInfo?.isGlobal ? 'bg-gradient-to-br from-coral-gradient-start to-coral-primary text-white shadow-md' : 'bg-coral-light text-coral-primary'}`}>
             {chatInfo?.isGlobal ? (
@@ -135,7 +135,7 @@ export default function ChatRoomPage() {
           {other && !chatInfo?.isGroup && <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${other.isOnline ? 'bg-green-500' : 'bg-stone-400'}`} />}
         </div>
         <div className="flex-1">
-          <div className={`font-semibold text-[15px] ${chatInfo?.isGlobal ? 'text-coral-hover' : 'text-stone-900'}`}>{chatName}</div>
+          <div className={`font-semibold text-[15px] ${chatInfo?.isGlobal ? 'text-coral-hover' : 'text-stone-900 dark:text-dm-text'}`}>{chatName}</div>
           <div className={`text-xs ${typingUsers.length > 0 ? 'text-green-500 italic' : 'text-stone-400'}`}>
             {typingUsers.length > 0 ? 'typing...' : chatInfo?.isGlobal || chatInfo?.isGroup ? (chatInfo.description || `${chatInfo.participants?.length || 0} members`) : (other?.isOnline ? 'Online' : other?.lastSeen ? `Last seen ${fmtTime(other.lastSeen)}` : '')}
           </div>
@@ -156,10 +156,10 @@ export default function ChatRoomPage() {
 
       {showRequests && (
         <div className="fixed inset-0 z-[1001] bg-black/40 flex justify-center items-start pt-20" onClick={() => setShowRequests(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-sm mx-4 p-5 shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4"><h2 className="font-bold">Join Requests</h2><button onClick={() => setShowRequests(false)} className="text-stone-400 cursor-pointer hover:text-stone-700">✕</button></div>
+          <div className="bg-white dark:bg-dm-surface rounded-2xl w-full max-w-sm mx-4 p-5 shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4"><h2 className="font-bold dark:text-dm-text">Join Requests</h2><button onClick={() => setShowRequests(false)} className="text-stone-400 dark:text-dm-muted cursor-pointer hover:text-stone-700">✕</button></div>
             {joinRequests.map(r => (
-              <div key={r._id} className="flex items-center gap-3 mb-3 p-3 border border-stone-100 rounded-xl bg-bg">
+              <div key={r._id} className="flex items-center gap-3 mb-3 p-3 border border-stone-100 dark:border-dm-border rounded-xl bg-bg dark:bg-dm-surface2">
                 <div className="w-10 h-10 rounded-full overflow-hidden border border-stone-100 shrink-0">
                   {resolveAvatarUrl(r) ? (
                     <img src={resolveAvatarUrl(r)} alt={r.name} className="w-full h-full object-cover" />
@@ -169,7 +169,7 @@ export default function ChatRoomPage() {
                     </div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0"><div className="font-bold text-sm text-stone-900 truncate">{r.name}</div></div>
+                <div className="flex-1 min-w-0"><div className="font-bold text-sm text-stone-900 dark:text-dm-text truncate">{r.name}</div></div>
                 <div className="flex gap-1 shrink-0">
                   <button onClick={() => handleRequest(r._id, 'approve')} className="px-3 py-1.5 bg-coral-primary text-white text-xs font-semibold rounded-lg cursor-pointer hover:bg-coral-hover">Approve</button>
                   <button onClick={() => handleRequest(r._id, 'reject')} className="px-3 py-1.5 bg-stone-200 text-stone-600 text-xs font-semibold rounded-lg cursor-pointer hover:bg-stone-300">Reject</button>
@@ -183,17 +183,17 @@ export default function ChatRoomPage() {
 
       {showInvite && (
         <div className="fixed inset-0 z-[1001] bg-black/40 flex justify-center items-start pt-20" onClick={() => { setShowInvite(false); setSearchQuery(''); setSearchResults([]); }}>
-          <div className="bg-white rounded-2xl w-full max-w-sm mx-4 p-5 shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4"><h2 className="font-bold">Invite Members</h2><button onClick={() => setShowInvite(false)} className="text-stone-400 cursor-pointer hover:text-stone-700">✕</button></div>
+          <div className="bg-white dark:bg-dm-surface rounded-2xl w-full max-w-sm mx-4 p-5 shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4"><h2 className="font-bold dark:text-dm-text">Invite Members</h2><button onClick={() => setShowInvite(false)} className="text-stone-400 dark:text-dm-muted cursor-pointer hover:text-stone-700">✕</button></div>
             
-            <input className="w-full px-4 py-2.5 border-[1.5px] border-stone-200 rounded-xl text-sm outline-none mb-4 focus:border-coral-primary bg-bg text-stone-900 placeholder:text-stone-400"
+            <input className="w-full px-4 py-2.5 border-[1.5px] border-stone-200 dark:border-dm-border rounded-xl text-sm outline-none mb-4 focus:border-coral-primary bg-bg dark:bg-dm-surface2 text-stone-900 dark:text-dm-text placeholder:text-stone-400 dark:placeholder:text-dm-muted"
               placeholder="Search users by name..." value={searchQuery} onChange={e => handleSearch(e.target.value)} autoFocus />
             
             {isSearching && <p className="text-center text-stone-400 text-xs py-2">Searching...</p>}
             
             <div className="max-h-[50vh] overflow-y-auto">
               {searchResults.map(u => (
-                <div key={u._id} className="flex items-center gap-3 mb-2 p-2.5 rounded-xl hover:bg-bg transition-colors">
+                <div key={u._id} className="flex items-center gap-3 mb-2 p-2.5 rounded-xl hover:bg-bg dark:hover:bg-dm-surface2 transition-colors">
                   <div className="w-9 h-9 rounded-full overflow-hidden border border-stone-100 shrink-0">
                     {resolveAvatarUrl(u) ? (
                       <img src={resolveAvatarUrl(u)} alt={u.name} className="w-full h-full object-cover" />
@@ -203,7 +203,7 @@ export default function ChatRoomPage() {
                       </div>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0"><div className="font-semibold text-sm text-stone-900 truncate">{u.name}</div><div className="text-xs text-stone-400 truncate">{u.email}</div></div>
+                  <div className="flex-1 min-w-0"><div className="font-semibold text-sm text-stone-900 dark:text-dm-text truncate">{u.name}</div><div className="text-xs text-stone-400 dark:text-dm-muted truncate">{u.email}</div></div>
                   <button onClick={() => inviteUser(u._id)} className="px-3 py-1.5 bg-orange-50 text-coral-hover text-xs font-semibold rounded-lg cursor-pointer hover:bg-coral-light">Invite</button>
                 </div>
               ))}
@@ -238,23 +238,23 @@ export default function ChatRoomPage() {
                 </div>
               )}
               {!isMe && !showAv && <div className="w-7 shrink-0" />}
-              <div className={`max-w-[70%] px-3.5 py-2.5 break-words text-[15px] leading-snug ${isMe ? 'bg-coral-primary text-white rounded-2xl rounded-br-sm shadow-[0_2px_8px_rgba(244,63,94,0.25)]' : 'bg-white text-stone-900 rounded-2xl rounded-bl-sm shadow-sm'}`}>
+              <div className={`max-w-[70%] px-3.5 py-2.5 break-words text-[15px] leading-snug ${isMe ? 'bg-coral-primary text-white rounded-2xl rounded-br-sm shadow-[0_2px_8px_rgba(244,63,94,0.25)]' : 'bg-white dark:bg-dm-surface text-stone-900 dark:text-dm-text rounded-2xl rounded-bl-sm shadow-sm'}`}>
                 <div>{m.content}</div>
                 <div className="flex items-center justify-end gap-1 mt-1">
-                  <span className={`text-[11px] ${isMe ? 'text-white/60' : 'text-stone-400'}`}>{fmtTime(m.createdAt)}</span>
+                  <span className={`text-[11px] ${isMe ? 'text-white/60' : 'text-stone-400 dark:text-dm-muted'}`}>{fmtTime(m.createdAt)}</span>
                   {statusIcon(m)}
                 </div>
               </div>
             </div>
           );
         })}
-        {typingUsers.length > 0 && <div className="flex items-center gap-2 py-2"><div className="bg-white px-4 py-2.5 rounded-2xl shadow-sm flex gap-1">{[0,1,2].map(i=><span key={i} className="w-[7px] h-[7px] rounded-full bg-stone-400" style={{animation:`typingBounce 1.4s infinite ease-in-out ${i*0.15}s`}}/>)}</div></div>}
+        {typingUsers.length > 0 && <div className="flex items-center gap-2 py-2"><div className="bg-white dark:bg-dm-surface px-4 py-2.5 rounded-2xl shadow-sm flex gap-1">{[0,1,2].map(i=><span key={i} className="w-[7px] h-[7px] rounded-full bg-stone-400 dark:bg-dm-muted" style={{animation:`typingBounce 1.4s infinite ease-in-out ${i*0.15}s`}}/>)}</div></div>}
         <div ref={endRef} />
       </div>
 
-      <div className="bg-white border-t border-stone-200 px-4 py-3 shrink-0">
+      <div className="bg-white dark:bg-dm-surface border-t border-stone-200 dark:border-dm-border px-4 py-3 shrink-0">
         <form onSubmit={send} className="flex gap-2.5 items-center max-w-2xl mx-auto">
-          <input ref={inputRef} type="text" value={input} onChange={handleInput} placeholder="Type a message..." className="flex-1 px-5 py-3 rounded-3xl border-[1.5px] border-stone-200 text-[15px] bg-bg text-stone-900 outline-none focus:border-coral-primary focus:shadow-[0_0_0_3px_#eef2ff] placeholder:text-stone-400" />
+          <input ref={inputRef} type="text" value={input} onChange={handleInput} placeholder="Type a message..." className="flex-1 px-5 py-3 rounded-3xl border-[1.5px] border-stone-200 dark:border-dm-border text-[15px] bg-bg dark:bg-dm-surface2 text-stone-900 dark:text-dm-text outline-none focus:border-coral-primary focus:shadow-[0_0_0_3px_#eef2ff] placeholder:text-stone-400 dark:placeholder:text-dm-muted" />
           <button type="submit" disabled={!input.trim()} className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer ${input.trim() ? 'bg-coral-primary shadow-md hover:bg-coral-hover hover:scale-105' : 'bg-stone-100'}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={input.trim()?'#fff':'#94a3b8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>

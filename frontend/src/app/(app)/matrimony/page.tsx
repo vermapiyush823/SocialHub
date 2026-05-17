@@ -71,21 +71,21 @@ export default function MatrimonyPage() {
   const activeFilterCount = Object.entries(filters).filter(([k, v]) => v && k !== 'sort').length;
   const fmtStatus = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-  const inputCls = "w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-stone-200 text-sm text-stone-900 bg-white outline-none focus:border-coral-primary focus:ring-3 focus:ring-coral-light placeholder:text-stone-400";
-  const selectCls = "w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-stone-200 text-sm text-stone-900 bg-white outline-none focus:border-coral-primary";
+  const inputCls = "w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-stone-200 dark:border-dm-border text-sm text-stone-900 dark:text-dm-text bg-white dark:bg-dm-surface2 outline-none focus:border-coral-primary focus:ring-3 focus:ring-coral-light placeholder:text-stone-400 dark:placeholder:text-dm-muted";
+  const selectCls = "w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-stone-200 dark:border-dm-border text-sm text-stone-900 dark:text-dm-text bg-white dark:bg-dm-surface2 outline-none focus:border-coral-primary";
 
   return (
-    <div className="min-h-dvh bg-bg">
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-50/50 px-5 pt-5 pb-3">
+    <div className="min-h-dvh bg-bg dark:bg-dm-bg">
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-dm-surface/90 backdrop-blur-xl border-b border-stone-50/50 dark:border-dm-border px-5 pt-5 pb-3">
         <div className="flex items-center justify-between">
           <h1 className="text-[26px] font-black tracking-tight text-coral-primary flex items-center gap-2" style={{ fontFamily: 'Georgia, serif' }}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h4l2-9 4 18 2-9h4"/></svg>Matrimony</h1>
           {!showSetup && <button onClick={() => { setShowSetup(true); setTab('profile'); }} className="px-5 py-2.5 rounded-full bg-coral-primary text-white text-[13px] font-bold hover:bg-coral-hover transition-all cursor-pointer">{myProfile ? 'Edit Profile' : '+ Create Profile'}</button>}
         </div>
         {!showSetup && (
-          <div className="flex gap-1 mt-3 bg-stone-100 rounded-xl p-1">
+          <div className="flex gap-1 mt-3 bg-stone-100 dark:bg-dm-surface2 rounded-xl p-1">
             {(['discover', 'interests', 'profile'] as Tab[]).map(t => (
               <button key={t} onClick={() => t === 'profile' && !myProfile ? (setTab(t), setShowSetup(true)) : (setTab(t), setShowSetup(false))}
-                className={`flex-1 py-2 rounded-lg text-[13px] font-semibold transition-all cursor-pointer ${tab === t ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500'}`}>
+              className={`flex-1 py-2 rounded-lg text-[13px] font-semibold transition-all cursor-pointer ${tab === t ? 'bg-white dark:bg-dm-bg text-stone-900 dark:text-dm-text shadow-sm' : 'text-stone-500 dark:text-dm-muted'}`}>
                 {t === 'discover' ? 'Discover' : t === 'interests' ? 'Interests' : 'My Profile'}
               </button>
             ))}
@@ -98,8 +98,8 @@ export default function MatrimonyPage() {
         : showSetup ? (
           <div>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold">{myProfile ? 'Edit' : 'Create'} Your Profile</h2>
-              <button onClick={() => setShowSetup(false)} className="text-stone-400 hover:text-stone-600 cursor-pointer text-lg">✕</button>
+              <h2 className="text-lg font-bold dark:text-dm-text">{myProfile ? 'Edit' : 'Create'} Your Profile</h2>
+              <button onClick={() => setShowSetup(false)} className="text-stone-400 dark:text-dm-muted hover:text-stone-600 cursor-pointer text-lg">✕</button>
             </div>
             <form onSubmit={saveProfile} className="flex flex-col gap-3.5">
               <div className="grid grid-cols-2 gap-3">
@@ -129,17 +129,17 @@ export default function MatrimonyPage() {
           </div>
         ) : tab === 'profile' ? (
           <div>
-            <h3 className="text-[15px] font-bold text-stone-900 mb-3 pl-1">My Profile</h3>
+            <h3 className="text-[15px] font-bold text-stone-900 dark:text-dm-text mb-3 pl-1">My Profile</h3>
             {myProfile ? (
-              <div className="bg-white rounded-[24px] border-none shadow-[0_8px_30px_rgba(244,107,92,0.06)] overflow-hidden">
+              <div className="bg-white dark:bg-dm-surface rounded-[24px] border-none shadow-[0_8px_30px_rgba(244,107,92,0.06)] overflow-hidden">
                 <div className="flex items-center gap-3 p-5">
                   <div className="relative">
                     <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center font-bold text-coral-primary text-2xl shrink-0">{user?.name?.charAt(0)?.toUpperCase()}</div>
                     <span className="absolute bottom-0 right-1 w-3.5 h-3.5 rounded-full border-2 border-white bg-[#00C853]" />
                   </div>
                   <div className="flex flex-col justify-center">
-                    <div className="font-bold text-lg text-stone-900 leading-tight mb-0.5">{user?.name}</div>
-                    <div className="text-[13px] font-medium text-stone-400">{myProfile.age && `${myProfile.age} yrs`}{myProfile.height && ` · ${myProfile.height}`}{myProfile.city && ` · ${myProfile.city}`}</div>
+                    <div className="font-bold text-lg text-stone-900 dark:text-dm-text leading-tight mb-0.5">{user?.name}</div>
+                    <div className="text-[13px] font-medium text-stone-400 dark:text-dm-muted">{myProfile.age && `${myProfile.age} yrs`}{myProfile.height && ` · ${myProfile.height}`}{myProfile.city && ` · ${myProfile.city}`}</div>
                   </div>
                 </div>
                 <div className="px-5 pb-5">
@@ -166,12 +166,12 @@ export default function MatrimonyPage() {
             <div className="flex items-center gap-2 mb-4">
               <button onClick={() => setShowFilters(!showFilters)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-bold transition-all cursor-pointer ${
-                  activeFilterCount > 0 ? 'bg-coral-primary text-white shadow-sm' : 'bg-white border border-stone-200 text-stone-700 hover:border-coral-primary'
+                  activeFilterCount > 0 ? 'bg-coral-primary text-white shadow-sm' : 'bg-white dark:bg-dm-surface border border-stone-200 dark:border-dm-border text-stone-700 dark:text-dm-text hover:border-coral-primary'
                 }`}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
                 Filters{activeFilterCount > 0 && ` (${activeFilterCount})`}
               </button>
-              <select className="px-3 py-2.5 rounded-full border border-stone-200 text-[13px] text-stone-700 bg-white outline-none focus:border-coral-primary cursor-pointer font-medium"
+              <select className="px-3 py-2.5 rounded-full border border-stone-200 dark:border-dm-border text-[13px] text-stone-700 dark:text-dm-text bg-white dark:bg-dm-surface outline-none focus:border-coral-primary cursor-pointer font-medium"
                 value={filters.sort} onChange={e => updateFilter('sort', e.target.value)}>
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -184,9 +184,9 @@ export default function MatrimonyPage() {
 
             {/* Filter Sheet */}
             {showFilters && (
-              <div className="bg-white rounded-[20px] shadow-[0_8px_30px_rgba(244,107,92,0.06)] p-5 mb-5 animate-slide-up">
+              <div className="bg-white dark:bg-dm-surface rounded-[20px] shadow-[0_8px_30px_rgba(244,107,92,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] p-5 mb-5 animate-slide-up">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-bold text-stone-900">Smart Filters</h3>
+                  <h3 className="font-bold text-stone-900 dark:text-dm-text">Smart Filters</h3>
                   {activeFilterCount > 0 && <button onClick={resetFilters} className="text-[13px] text-coral-primary font-semibold cursor-pointer hover:text-coral-hover">Clear All</button>}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -249,10 +249,10 @@ export default function MatrimonyPage() {
             )}
 
             {!myProfile && (
-              <div className="mb-6 p-4 bg-coral-light border border-coral-light rounded-xl flex items-center justify-between">
+              <div className="mb-6 p-4 bg-coral-light dark:bg-coral-primary/10 border border-coral-light dark:border-coral-primary/20 rounded-xl flex items-center justify-between">
                 <div>
                   <h3 className="font-bold text-coral-primary text-[15px]">Want to find matches?</h3>
-                  <p className="text-[13px] text-stone-600">Create your matrimony profile to connect with others.</p>
+                  <p className="text-[13px] text-stone-600 dark:text-dm-muted">Create your matrimony profile to connect with others.</p>
                 </div>
                 <button onClick={() => setShowSetup(true)} className="px-5 py-2 rounded-full bg-coral-primary text-white text-[13px] font-bold hover:bg-coral-hover transition-all shadow-sm shadow-coral-primary/20 shrink-0">Create Profile</button>
               </div>
@@ -260,19 +260,19 @@ export default function MatrimonyPage() {
             {profiles.length === 0 ? (
               <div className="text-center py-12 text-stone-400"><div className="mb-4 flex justify-center text-stone-300"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><h3 className="font-semibold text-stone-500 mb-1">No profiles found</h3><p className="text-sm">Try adjusting your filters</p></div>
             ) : profiles.map(p => (
-              <div key={p._id} className="bg-white rounded-[24px] border-none shadow-[0_8px_30px_rgba(244,107,92,0.06)] mb-4 overflow-hidden hover:shadow-md transition-shadow">
+              <div key={p._id} className="bg-white dark:bg-dm-surface rounded-[24px] border-none shadow-[0_8px_30px_rgba(244,107,92,0.06)] mb-4 overflow-hidden hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 p-4">
                   <div className="relative">
                     <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center font-bold text-coral-primary text-2xl shrink-0">{p.userId?.name?.charAt(0)?.toUpperCase()}</div>
                     <span className={`absolute bottom-0 right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${p.userId?.isOnline ? 'bg-[#00C853]' : 'bg-stone-400'}`} />
                   </div>
                   <div className="flex flex-col justify-center">
-                    <div className="font-bold text-lg text-stone-900 leading-tight mb-0.5">{p.userId?.name}</div>
-                    <div className="text-[13px] font-medium text-stone-400">{p.age && `${p.age} yrs`}{p.height && ` · ${p.height}`}{p.city && ` · ${p.city}`}</div>
+                    <div className="font-bold text-lg text-stone-900 dark:text-dm-text leading-tight mb-0.5">{p.userId?.name}</div>
+                    <div className="text-[13px] font-medium text-stone-400 dark:text-dm-muted">{p.age && `${p.age} yrs`}{p.height && ` · ${p.height}`}{p.city && ` · ${p.city}`}</div>
                   </div>
                 </div>
                 <div className="px-5 pb-5">
-                  {p.about && <p className="text-sm text-stone-600 leading-relaxed mb-3">{p.about}</p>}
+                  {p.about && <p className="text-sm text-stone-600 dark:text-dm-muted leading-relaxed mb-3">{p.about}</p>}
                   <div className="flex flex-wrap gap-2 mb-4">
                     {p.religion && <span className="px-3 py-1 rounded-md text-[13px] font-medium bg-red-50 text-red-500">{p.religion}</span>}
                     {p.education && <span className="px-3 py-1 rounded-md text-[13px] font-medium bg-orange-50 text-orange-500">{p.education}</span>}
@@ -294,10 +294,10 @@ export default function MatrimonyPage() {
             {interests.length === 0 ? (
               <div className="text-center py-12 text-stone-400"><div className="mb-4 flex justify-center text-stone-300"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><h3 className="font-semibold text-stone-500 mb-1">No interests yet</h3><p className="text-sm">When someone sends you interest, it&apos;ll show up here</p></div>
             ) : interests.map((item: any, i: number) => (
-              <div key={i} className="bg-white rounded-[24px] border-none shadow-[0_8px_30px_rgba(244,107,92,0.06)] mb-4 p-4">
+              <div key={i} className="bg-white dark:bg-dm-surface rounded-[24px] border-none shadow-[0_8px_30px_rgba(244,107,92,0.06)] mb-4 p-4">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-coral-light to-coral-light flex items-center justify-center font-bold text-coral-primary text-lg">{item.profile?.userId?.name?.charAt(0)?.toUpperCase()}</div>
-                  <div><div className="font-bold text-stone-900">{item.profile?.userId?.name}</div><div className="text-[13px] text-stone-500">{item.profile?.age && `${item.profile.age} yrs`}{item.profile?.city && ` · ${item.profile.city}`}</div></div>
+                  <div><div className="font-bold text-stone-900 dark:text-dm-text">{item.profile?.userId?.name}</div><div className="text-[13px] text-stone-500 dark:text-dm-muted">{item.profile?.age && `${item.profile.age} yrs`}{item.profile?.city && ` · ${item.profile.city}`}</div></div>
                 </div>
                 <div className="flex gap-2">
                   <button className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-coral-gradient-start to-coral-primary text-white font-semibold text-sm cursor-pointer">Accept</button>

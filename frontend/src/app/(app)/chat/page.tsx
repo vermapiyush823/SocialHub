@@ -121,18 +121,18 @@ export default function ChatListPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-bg">
+    <div className="min-h-dvh bg-bg dark:bg-dm-bg">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-50/50 px-5 pt-5 pb-3">
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-dm-surface/90 backdrop-blur-xl border-b border-stone-50/50 dark:border-dm-border px-5 pt-5 pb-3">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-[26px] font-black tracking-tight text-coral-primary" style={{ fontFamily: 'Georgia, serif' }}>Chats</h1>
           <button onClick={() => setShowNewChat(true)}
             className="px-5 py-2.5 rounded-full bg-coral-primary text-white text-[13px] font-bold shadow-sm shadow-coral-primary/20 hover:bg-coral-hover transition-all cursor-pointer"
           >+ New Chat</button>
         </div>
-        <div className="flex gap-1 bg-bg p-1.5 rounded-2xl">
-          <button onClick={() => setTab('chats')} className={`flex-1 py-2 text-[13px] font-bold rounded-xl transition-all cursor-pointer ${tab === 'chats' ? 'bg-white shadow-sm text-text-main' : 'text-text-muted hover:text-stone-700'}`}>My Chats</button>
-          <button onClick={() => setTab('discover')} className={`flex-1 py-2 text-[13px] font-bold rounded-xl transition-all cursor-pointer ${tab === 'discover' ? 'bg-white shadow-sm text-text-main' : 'text-text-muted hover:text-stone-700'}`}>Discover Groups</button>
+        <div className="flex gap-1 bg-bg dark:bg-dm-surface2 p-1.5 rounded-2xl">
+          <button onClick={() => setTab('chats')} className={`flex-1 py-2 text-[13px] font-bold rounded-xl transition-all cursor-pointer ${tab === 'chats' ? 'bg-white dark:bg-dm-bg shadow-sm text-text-main dark:text-dm-text' : 'text-text-muted dark:text-dm-muted hover:text-stone-700'}`}>My Chats</button>
+          <button onClick={() => setTab('discover')} className={`flex-1 py-2 text-[13px] font-bold rounded-xl transition-all cursor-pointer ${tab === 'discover' ? 'bg-white dark:bg-dm-bg shadow-sm text-text-main dark:text-dm-text' : 'text-text-muted dark:text-dm-muted hover:text-stone-700'}`}>Discover Groups</button>
         </div>
       </header>
 
@@ -140,26 +140,26 @@ export default function ChatListPage() {
       {showNewChat && (
         <div className="fixed inset-0 z-[1001] bg-black/40 flex items-start justify-center pt-16"
           onClick={() => { setShowNewChat(false); setSearchQuery(''); setSearchResults([]); }}>
-          <div className="bg-white rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl animate-slide-up max-h-[70vh] overflow-auto"
+          <div className="bg-white dark:bg-dm-surface rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl animate-slide-up max-h-[70vh] overflow-auto"
             onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">Start Conversation</h2>
-              <button onClick={() => setShowNewChat(false)} className="text-stone-400 hover:text-stone-700 text-xl cursor-pointer">✕</button>
+              <h2 className="text-lg font-bold dark:text-dm-text">Start Conversation</h2>
+              <button onClick={() => setShowNewChat(false)} className="text-stone-400 dark:text-dm-muted hover:text-stone-700 dark:hover:text-dm-text text-xl cursor-pointer">✕</button>
             </div>
             
-            <div className="flex gap-2 mb-4 border-b border-stone-100 pb-2">
+            <div className="flex gap-2 mb-4 border-b border-stone-100 dark:border-dm-border pb-2">
               <button onClick={() => setNewChatMode('user')} className={`text-sm font-semibold pb-1 cursor-pointer ${newChatMode === 'user' ? 'text-coral-primary border-b-2 border-rose-500' : 'text-stone-400'}`}>Direct Message</button>
               <button onClick={() => setNewChatMode('group')} className={`text-sm font-semibold pb-1 cursor-pointer ${newChatMode === 'group' ? 'text-coral-primary border-b-2 border-rose-500' : 'text-stone-400'}`}>Create Group</button>
             </div>
 
             {newChatMode === 'user' ? (
               <>
-                <input className="w-full px-4 py-3 border-[1.5px] border-stone-200 rounded-xl text-[15px] text-stone-900 outline-none mb-4 focus:border-rose-500 focus:ring-3 focus:ring-rose-100 placeholder:text-stone-400"
+                <input className="w-full px-4 py-3 border-[1.5px] border-stone-200 dark:border-dm-border rounded-xl text-[15px] text-stone-900 dark:text-dm-text bg-white dark:bg-dm-surface2 outline-none mb-4 focus:border-rose-500 placeholder:text-stone-400 dark:placeholder:text-dm-muted"
                   placeholder="Search by name..." value={searchQuery} onChange={e => handleSearch(e.target.value)} autoFocus />
                 {isSearching && <p className="text-center text-stone-400 text-sm py-2">Searching...</p>}
                 {searchResults.map(u => (
                   <button key={u._id} onClick={() => startChat(u._id)}
-                    className="flex items-center gap-3 w-full p-3 rounded-xl text-left hover:bg-bg transition-colors cursor-pointer">
+                    className="flex items-center gap-3 w-full p-3 rounded-xl text-left hover:bg-bg dark:hover:bg-dm-surface2 transition-colors cursor-pointer">
                     <div className="w-10 h-10 rounded-full shrink-0 overflow-hidden border border-stone-100">
                       {resolveAvatarUrl(u) ? (
                         <img src={resolveAvatarUrl(u)} alt={u.name} className="w-full h-full object-cover" />
@@ -170,8 +170,8 @@ export default function ChatListPage() {
                       )}
                     </div>
                     <div>
-                      <div className="font-semibold text-[15px]">{u.name}</div>
-                      <div className="text-[13px] text-stone-400">{u.email}</div>
+                      <div className="font-semibold text-[15px] dark:text-dm-text">{u.name}</div>
+                      <div className="text-[13px] text-stone-400 dark:text-dm-muted">{u.email}</div>
                     </div>
                   </button>
                 ))}
@@ -182,16 +182,16 @@ export default function ChatListPage() {
             ) : (
               <form onSubmit={createGroup} className="flex flex-col gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-500 mb-1">Group Name</label>
-                  <input required className="w-full px-3.5 py-2.5 border-[1.5px] border-stone-200 rounded-xl text-sm outline-none focus:border-rose-500" value={groupForm.name} onChange={e => setGroupForm({...groupForm, name: e.target.value})} placeholder="e.g. Hiking Club" />
+                  <label className="block text-xs font-semibold text-stone-500 dark:text-dm-muted mb-1">Group Name</label>
+                  <input required className="w-full px-3.5 py-2.5 border-[1.5px] border-stone-200 dark:border-dm-border rounded-xl text-sm outline-none focus:border-rose-500 bg-white dark:bg-dm-surface2 text-stone-900 dark:text-dm-text" value={groupForm.name} onChange={e => setGroupForm({...groupForm, name: e.target.value})} placeholder="e.g. Hiking Club" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-stone-500 mb-1">Description</label>
-                  <input className="w-full px-3.5 py-2.5 border-[1.5px] border-stone-200 rounded-xl text-sm outline-none focus:border-rose-500" value={groupForm.description} onChange={e => setGroupForm({...groupForm, description: e.target.value})} placeholder="What is this group about?" />
+                  <label className="block text-xs font-semibold text-stone-500 dark:text-dm-muted mb-1">Description</label>
+                  <input className="w-full px-3.5 py-2.5 border-[1.5px] border-stone-200 dark:border-dm-border rounded-xl text-sm outline-none focus:border-rose-500 bg-white dark:bg-dm-surface2 text-stone-900 dark:text-dm-text" value={groupForm.description} onChange={e => setGroupForm({...groupForm, description: e.target.value})} placeholder="What is this group about?" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-stone-500 mb-1">Privacy</label>
-                  <select className="w-full px-3.5 py-2.5 border-[1.5px] border-stone-200 rounded-xl text-sm outline-none focus:border-rose-500 bg-white" value={groupForm.joinMode} onChange={e => setGroupForm({...groupForm, joinMode: e.target.value})}>
+                  <label className="block text-xs font-semibold text-stone-500 dark:text-dm-muted mb-1">Privacy</label>
+                  <select className="w-full px-3.5 py-2.5 border-[1.5px] border-stone-200 dark:border-dm-border rounded-xl text-sm outline-none focus:border-rose-500 bg-white dark:bg-dm-surface2 text-stone-900 dark:text-dm-text" value={groupForm.joinMode} onChange={e => setGroupForm({...groupForm, joinMode: e.target.value})}>
                     <option value="invite_only">Private (Invite Only)</option>
                     <option value="request_to_join">Public (Request to Join)</option>
                   </select>
@@ -219,7 +219,7 @@ export default function ChatListPage() {
               const online = !c.isGroup && !c.isGlobal && (c.otherUser?.isOnline || false);
               return (
                 <button key={c._id} onClick={() => router.push(`/chat/${c._id}`)}
-                  className="flex items-center gap-3 w-full px-3 py-3.5 rounded-xl text-left hover:bg-stone-100 transition-colors cursor-pointer"
+                  className="flex items-center gap-3 w-full px-3 py-3.5 rounded-xl text-left hover:bg-stone-100 dark:hover:bg-dm-surface2 transition-colors cursor-pointer"
                 >
                   <div className="relative shrink-0">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg overflow-hidden ${c.isGlobal ? 'bg-gradient-to-br from-coral-gradient-start to-coral-primary text-white shadow-md' : 'bg-gradient-to-br from-orange-50 to-rose-100 text-coral-primary'}`}>
@@ -235,10 +235,10 @@ export default function ChatListPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center mb-0.5">
-                      <span className={`font-semibold text-[15px] ${c.isGlobal ? 'text-rose-600' : 'text-stone-900'}`}>{name}</span>
-                      <span className="text-xs text-stone-400 shrink-0">{formatTime(c.lastMessage?.timestamp)}</span>
+                      <span className={`font-semibold text-[15px] ${c.isGlobal ? 'text-rose-600' : 'text-stone-900 dark:text-dm-text'}`}>{name}</span>
+                      <span className="text-xs text-stone-400 dark:text-dm-muted shrink-0">{formatTime(c.lastMessage?.timestamp)}</span>
                     </div>
-                    <p className="text-[13px] text-stone-400 truncate">{c.lastMessage?.content || 'No messages yet'}</p>
+                    <p className="text-[13px] text-stone-400 dark:text-dm-muted truncate">{c.lastMessage?.content || 'No messages yet'}</p>
                   </div>
                 </button>
               );
@@ -250,13 +250,13 @@ export default function ChatListPage() {
               <div>
                 <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2 px-1">Invitations</h3>
                 {invitations.map(g => (
-                  <div key={g._id} className="flex items-center gap-3 w-full p-4 mb-2 rounded-xl bg-orange-50 border border-rose-100 shadow-sm">
+                  <div key={g._id} className="flex items-center gap-3 w-full p-4 mb-2 rounded-xl bg-orange-50 dark:bg-coral-primary/10 border border-rose-100 dark:border-coral-primary/20 shadow-sm">
                     <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center font-bold text-coral-primary text-lg shrink-0">
                       {g.groupName.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-[15px] text-stone-900">{g.groupName}</div>
-                      <div className="text-xs text-stone-500 mb-1">Invited by {g.admin?.name}</div>
+                      <div className="font-bold text-[15px] text-stone-900 dark:text-dm-text">{g.groupName}</div>
+                      <div className="text-xs text-stone-500 dark:text-dm-muted mb-1">Invited by {g.admin?.name}</div>
                     </div>
                     <div className="flex gap-1 shrink-0">
                       <button onClick={() => respondToInvite(g._id, 'accept')} className="px-3 py-1.5 bg-coral-primary text-white text-xs font-semibold rounded-lg cursor-pointer hover:bg-coral-hover">Accept</button>
@@ -276,13 +276,13 @@ export default function ChatListPage() {
                 </div>
               ) : (
                 discoverGroups.map(g => (
-                  <div key={g._id} className="flex items-center gap-3 w-full p-4 mb-3 rounded-xl bg-white border border-stone-100 shadow-sm">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-stone-50 to-stone-100 flex items-center justify-center font-bold text-stone-500 text-lg shrink-0">
+                  <div key={g._id} className="flex items-center gap-3 w-full p-4 mb-3 rounded-xl bg-white dark:bg-dm-surface border border-stone-100 dark:border-dm-border shadow-sm">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-stone-50 to-stone-100 dark:from-dm-surface2 dark:to-dm-border flex items-center justify-center font-bold text-stone-500 dark:text-dm-muted text-lg shrink-0">
                       {g.groupName.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-[15px] text-stone-900">{g.groupName}</div>
-                      <div className="text-xs text-stone-500 mb-1">{g.participantCount} members • Admin: {g.admin?.name}</div>
+                      <div className="font-bold text-[15px] text-stone-900 dark:text-dm-text">{g.groupName}</div>
+                      <div className="text-xs text-stone-500 dark:text-dm-muted mb-1">{g.participantCount} members • Admin: {g.admin?.name}</div>
                       {g.description && <div className="text-[13px] text-stone-600 truncate">{g.description}</div>}
                     </div>
                     <button onClick={() => !g.hasRequested && requestJoin(g._id)} disabled={g.hasRequested}

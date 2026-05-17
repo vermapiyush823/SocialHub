@@ -42,7 +42,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 pb-safe bg-white/90 backdrop-blur-xl border-t border-stone-50/50 flex items-center justify-around z-[1000] shadow-[0_-8px_30px_rgba(0,0,0,0.02)] h-[80px] px-2">
+    <nav className="fixed bottom-0 left-0 right-0 pb-safe bg-white/90 dark:bg-dm-surface/90 backdrop-blur-xl border-t border-stone-50/50 dark:border-dm-border flex items-center justify-around z-[1000] shadow-[0_-8px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_-8px_30px_rgba(0,0,0,0.2)] h-[80px] px-2">
       {navItems.map((item) => {
         const active = pathname.startsWith(item.href);
         return (

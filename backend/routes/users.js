@@ -55,6 +55,86 @@ router.patch('/profile', auth, async (req, res) => {
 });
 
 
+// PATCH /api/users/password — Change password
+router.patch('/password', auth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current and new password are required.' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters.' });
+    }
+
+    // Get user with password field
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    if (user.authProvider === 'google') {
+      return res.status(400).json({ error: 'Google accounts cannot change password here.' });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password updated successfully.' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// DELETE /api/users/account — Delete own account
+router.delete('/account', auth, async (req, res) => {
+  try {
+    const Post = require('../models/Post');
+
+    // Delete profile pic from Cloudinary
+    if (req.user.profilePicPublicId) {
+      await deleteFromCloudinary(req.user.profilePicPublicId);
+    }
+
+    // Soft-delete user's posts and clean up their media
+    const posts = await Post.find({ userId: req.user._id, isDeleted: false });
+    for (const post of posts) {
+      if (post.media && post.media.length > 0) {
+        for (const item of post.media) {
+          if (item.publicId) {
+            await deleteFromCloudinary(item.publicId, item.type || 'image');
+          }
+        }
+      }
+      post.isDeleted = true;
+      await post.save();
+    }
+
+    // Remove from followers/following lists
+    await User.updateMany(
+      { followers: req.user._id },
+      { $pull: { followers: req.user._id } }
+    );
+    await User.updateMany(
+      { following: req.user._id },
+      { $pull: { following: req.user._id } }
+    );
+
+    // Delete user
+    await User.findByIdAndDelete(req.user._id);
+
+    res.json({ message: 'Account deleted successfully.' });
+  } catch (err) {
+    console.error('Delete account error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // POST /api/users/:id/follow — Toggle follow/unfollow
 router.post('/:id/follow', auth, async (req, res) => {
   try {

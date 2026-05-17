@@ -52,9 +52,9 @@ export default function FeedPage() {
   }, [loadingMore, hasMore, nextCursor]);
 
   return (
-    <div className="min-h-dvh bg-bg">
+    <div className="min-h-dvh bg-bg dark:bg-dm-bg">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-50/50 px-5 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-dm-surface/90 backdrop-blur-xl border-b border-stone-50/50 dark:border-dm-border px-5 py-4 flex items-center justify-between">
         <span className="text-[26px] font-black tracking-tight text-coral-primary" style={{ fontFamily: 'Georgia, serif' }}>
           Glimpse
         </span>
@@ -74,8 +74,8 @@ export default function FeedPage() {
             <svg className="w-16 h-16 mx-auto mb-4 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
             </svg>
-            <h3 className="text-base font-semibold text-stone-500 mb-1">No posts yet</h3>
-            <p className="text-sm mb-5">Create your first post and start sharing!</p>
+            <h3 className="text-base font-semibold text-stone-500 dark:text-dm-muted mb-1">No posts yet</h3>
+            <p className="text-sm mb-5 dark:text-dm-muted">Create your first post and start sharing!</p>
             <button onClick={() => setShowCreate(true)} className="px-6 py-2.5 rounded-full bg-coral-primary text-white font-bold text-sm cursor-pointer shadow-sm">Create Post</button>
           </div>
         ) : (
@@ -87,7 +87,7 @@ export default function FeedPage() {
             ))}
             {loadingMore && <div className="flex justify-center py-4"><div className="w-6 h-6 border-3 border-stone-200 border-t-coral-primary rounded-full animate-spin" /></div>}
             {!hasMore && posts.length > 0 && (
-              <p className="text-center py-5 text-stone-400 text-sm flex items-center justify-center gap-1.5">
+              <p className="text-center py-5 text-stone-400 dark:text-dm-muted text-sm flex items-center justify-center gap-1.5">
                 You&apos;re all caught up!
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>

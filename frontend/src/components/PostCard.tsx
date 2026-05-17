@@ -116,10 +116,10 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
   const avatarUrl = resolveAvatarUrl(post.userId);
 
   return (
-    <div className="bg-white rounded-[24px] border-none shadow-[0_8px_30px_rgb(244,107,92,0.06)] overflow-hidden transition-shadow">
+    <div className="bg-white dark:bg-dm-surface rounded-[24px] border-none shadow-[0_8px_30px_rgb(244,107,92,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] overflow-hidden transition-shadow">
       {/* Header */}
       <div className="flex items-center gap-3 p-5 pb-3">
-        <Link href={`/user/${post.userId._id}`} className="w-11 h-11 rounded-full bg-coral-light flex items-center justify-center font-bold text-coral-primary text-base shrink-0 overflow-hidden cursor-pointer">
+        <Link href={`/user/${post.userId._id}`} className="w-11 h-11 rounded-full bg-coral-light dark:bg-coral-primary/15 flex items-center justify-center font-bold text-coral-primary text-base shrink-0 overflow-hidden cursor-pointer">
           {avatarUrl ? (
             <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
           ) : (
@@ -127,13 +127,13 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
           )}
         </Link>
         <div className="flex-1 min-w-0">
-          <Link href={`/user/${post.userId._id}`} className="font-semibold text-[16px] text-text-main hover:underline cursor-pointer block truncate">
+          <Link href={`/user/${post.userId._id}`} className="font-semibold text-[16px] text-text-main dark:text-dm-text hover:underline cursor-pointer block truncate">
             {post.userId.name}
           </Link>
-          <div className="text-[13px] text-text-muted">{timeAgo(post.createdAt)}</div>
+          <div className="text-[13px] text-text-muted dark:text-dm-muted">{timeAgo(post.createdAt)}</div>
         </div>
         {isOwner && (
-          <button onClick={handleDelete} className="p-2 rounded-xl text-stone-300 hover:text-stone-600 hover:bg-bg transition-colors cursor-pointer group">
+          <button onClick={handleDelete} className="p-2 rounded-xl text-stone-300 dark:text-dm-muted hover:text-stone-600 dark:hover:text-dm-text hover:bg-bg dark:hover:bg-dm-surface2 transition-colors cursor-pointer group">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
@@ -142,7 +142,7 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
       </div>
 
       {/* Caption */}
-      {post.caption && <p className="px-5 pb-4 text-[15px] leading-relaxed text-text-main">{post.caption}</p>}
+      {post.caption && <p className="px-5 pb-4 text-[15px] leading-relaxed text-text-main dark:text-dm-text">{post.caption}</p>}
 
       {/* Media — Cloudinary-optimised */}
       {primaryMedia && (
@@ -190,11 +190,11 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-3 px-5 py-3 border-t border-stone-50/50">
+      <div className="flex items-center gap-3 px-5 py-3 border-t border-stone-50/50 dark:border-dm-border">
         <button onClick={handleLike}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-semibold transition-all cursor-pointer ${isLiked
             ? 'bg-gradient-to-r from-coral-gradient-start to-coral-primary text-white shadow-md shadow-coral-primary/20'
-            : 'bg-coral-light text-coral-primary hover:bg-[#FFEAE5]'
+            : 'bg-coral-light dark:bg-coral-primary/15 text-coral-primary hover:bg-[#FFEAE5] dark:hover:bg-coral-primary/25'
             }`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24"
@@ -208,7 +208,7 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
         </button>
 
         <button onClick={toggleComments}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-semibold bg-white border border-stone-100 text-stone-600 hover:bg-stone-50 transition-colors cursor-pointer shadow-sm"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-semibold bg-white dark:bg-dm-surface2 border border-stone-100 dark:border-dm-border text-stone-600 dark:text-dm-text hover:bg-stone-50 dark:hover:bg-dm-border transition-colors cursor-pointer shadow-sm"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -219,7 +219,7 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
 
       {/* Comments */}
       {showComments && (
-        <div className="border-t border-stone-50/50">
+        <div className="border-t border-stone-50/50 dark:border-dm-border">
           {isLoadingComments ? (
             <p className="p-4 text-center text-stone-400 text-sm">Loading...</p>
           ) : comments.length === 0 ? (
@@ -242,11 +242,11 @@ export default function PostCard({ post, currentUserId, onDelete }: Props) {
               </div>
             ))
           )}
-          <form onSubmit={submitComment} className="flex gap-2 px-5 py-4 border-t border-stone-50/50">
+          <form onSubmit={submitComment} className="flex gap-2 px-5 py-4 border-t border-stone-50/50 dark:border-dm-border">
             <input
               value={commentInput} onChange={e => setCommentInput(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 px-4 py-2.5 rounded-full border border-stone-200 text-sm outline-none bg-stone-50 text-text-main focus:border-coral-primary focus:bg-white transition-colors placeholder:text-stone-400"
+              className="flex-1 px-4 py-2.5 rounded-full border border-stone-200 dark:border-dm-border text-sm outline-none bg-stone-50 dark:bg-dm-surface2 text-text-main dark:text-dm-text focus:border-coral-primary focus:bg-white dark:focus:bg-dm-bg transition-colors placeholder:text-stone-400 dark:placeholder:text-dm-muted"
             />
             <button type="submit" disabled={!commentInput.trim()}
               className="px-5 py-2.5 rounded-full bg-coral-primary text-white text-[13px] font-semibold disabled:bg-stone-300 disabled:cursor-not-allowed cursor-pointer hover:bg-coral-hover transition-colors shadow-sm"
